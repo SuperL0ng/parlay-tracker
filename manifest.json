@@ -1,0 +1,22 @@
+{
+  "name": "Parlay Ticket Builder",
+  "short_name": "Parlay Builder",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#07111f",
+  "theme_color": "#07111f",
+  "icons": [
+    {
+      "src": "./ssb_apple_touch_home_dark_180.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./ssb_ios_zoom_dark_512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
