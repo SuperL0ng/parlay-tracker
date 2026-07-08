@@ -157,7 +157,7 @@
     .appFrame {
       display: block;
       width: 100%;
-      height: var(--app-frame-height, 2600px);
+      height: var(--app-frame-height, 3600px);
       min-height: calc(100svh - 120px);
       border: 0;
       border-radius: 8px;
@@ -257,14 +257,14 @@
     (function () {
       const MESSAGE_TYPE = "PARLAY_TRACKER_HEIGHT";
       const MIN_FRAME_HEIGHT = 1800;
-      const HEIGHT_PADDING = 120;
-      const MAX_FRAME_HEIGHT = 12000;
+      const HEIGHT_PADDING = 160;
+      const MAX_FRAME_HEIGHT = 16000;
 
       const frame = document.querySelector(".appFrame");
 
       if (!frame) return;
 
-      function setFrameHeight(rawHeight) {
+      function setFrameHeight(rawHeight, reason) {
         const numericHeight = Number(rawHeight);
 
         if (!Number.isFinite(numericHeight) || numericHeight <= 0) return;
@@ -276,6 +276,8 @@
 
         document.documentElement.style.setProperty("--app-frame-height", nextHeight + "px");
         frame.style.height = nextHeight + "px";
+        frame.dataset.reportedHeight = String(nextHeight);
+        frame.dataset.heightReason = reason || "message";
       }
 
       window.addEventListener("message", function (event) {
@@ -283,15 +285,22 @@
 
         if (data.type !== MESSAGE_TYPE) return;
 
-        setFrameHeight(data.height);
+        setFrameHeight(data.height, "postMessage");
       });
 
+      // Fallback in case Apps Script's sandbox blocks height messages.
+      // This is deliberately generous so the app does not clip while testing.
       frame.addEventListener("load", function () {
         setTimeout(function () {
-          setFrameHeight(2600);
+          setFrameHeight(3600, "load-fallback");
           window.scrollTo(window.scrollX, window.scrollY + 1);
           window.scrollTo(window.scrollX, Math.max(0, window.scrollY - 1));
         }, 150);
+
+        setTimeout(function () {
+          const current = Number(frame.dataset.reportedHeight || 0);
+          if (current < 3000) setFrameHeight(4200, "late-fallback");
+        }, 1200);
       });
     })();
   </script>
