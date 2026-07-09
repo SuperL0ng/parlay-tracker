@@ -1,233 +1,46 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>Parlay Tracker</title>
-
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#d7dde6">
-  <meta name="apple-mobile-web-app-title" content="Parlay Tracker">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="mobile-web-app-capable" content="yes">
-
-  <link rel="icon" href="./favicon.ico?v=favsilver3" sizes="any">
-  <link rel="shortcut icon" href="./favicon.ico?v=favsilver3">
-  <link rel="apple-touch-icon" sizes="180x180" href="./ssb_apple_touch_home_dark_180.png?v=touch2">
-  <link rel="apple-touch-icon-precomposed" sizes="180x180" href="./ssb_apple_touch_home_dark_180.png?v=touch2">
-  <link rel="manifest" href="./manifest.json?v=touch2">
-
-  <style>
-    :root {
-      --silver-1: #f6f8fb;
-      --silver-2: #e4e9f0;
-      --silver-3: #cfd6df;
-      --silver-4: #adb7c4;
-      --edge-dark: rgba(44, 52, 63, 0.34);
-      --text: #1a2028;
-      --muted: #5d6673;
-      --shadow: rgba(0,0,0,0.16);
-      --gold: #ddb35a;
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    html,
-    body {
-      margin: 0;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
-      background:
-        radial-gradient(circle at top center, rgba(255,255,255,0.88), transparent 36%),
-        repeating-linear-gradient(
-          100deg,
-          rgba(255,255,255,0.22) 0px,
-          rgba(255,255,255,0.22) 1px,
-          rgba(0,0,0,0.025) 1px,
-          rgba(0,0,0,0.025) 3px,
-          transparent 3px,
-          transparent 11px
-        ),
-        linear-gradient(180deg, var(--silver-1) 0%, var(--silver-3) 44%, var(--silver-4) 100%);
-    }
-
-    .shell {
-      position: fixed;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-      min-height: 0;
-      background:
-        radial-gradient(circle at top center, rgba(255,255,255,0.68), transparent 36%),
-        linear-gradient(180deg, rgba(255,255,255,0.18), rgba(255,255,255,0.04)),
-        linear-gradient(180deg, var(--silver-2) 0%, var(--silver-3) 40%, var(--silver-4) 100%);
-    }
-
-    .brand {
-      position: relative;
-      flex: 0 0 auto;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 86px;
-      padding:
-        calc(max(10px, env(safe-area-inset-top)))
-        14px
-        10px;
-      border-bottom: 1px solid var(--edge-dark);
-      background:
-        linear-gradient(180deg, rgba(255,255,255,0.90), rgba(235,240,246,0.76) 28%, rgba(178,188,201,0.84) 100%),
-        repeating-linear-gradient(
-          98deg,
-          rgba(255,255,255,0.20) 0,
-          rgba(255,255,255,0.20) 1px,
-          rgba(0,0,0,0.02) 1px,
-          rgba(0,0,0,0.02) 3px,
-          transparent 3px,
-          transparent 11px
-        );
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.94),
-        inset 0 -1px 0 rgba(44,52,63,0.18),
-        0 8px 18px var(--shadow);
-      overflow: hidden;
-    }
-
-    .brand::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background:
-        linear-gradient(110deg, rgba(255,255,255,0.52), transparent 30%, rgba(255,255,255,0.12) 58%, transparent 82%);
-      pointer-events: none;
-    }
-
-    .brand::after {
-      content: "";
-      position: absolute;
-      left: 14px;
-      right: 14px;
-      bottom: 0;
-      height: 2px;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.95), rgba(221,179,90,0.72), rgba(255,255,255,0.95), transparent);
-      opacity: 0.9;
-      pointer-events: none;
-    }
-
-    .brand img {
-      position: relative;
-      z-index: 1;
-      display: block;
-      width: min(168px, 44vw);
-      max-height: 76px;
-      object-fit: contain;
-      filter: drop-shadow(0 5px 8px rgba(0,0,0,0.16));
-    }
-
-    .frameWrap {
-      flex: 1 1 auto;
-      min-height: 0;
-      padding: 10px;
-      background:
-        linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.02)),
-        linear-gradient(180deg, #d8dee7 0%, #c4ccd7 100%);
-    }
-
-    .frameBezel {
-      width: 100%;
-      height: 100%;
-      border-radius: 12px;
-      padding: 6px;
-      background:
-        linear-gradient(180deg, rgba(255,255,255,0.86), rgba(218,225,234,0.84) 36%, rgba(146,157,171,0.90) 100%);
-      border: 1px solid rgba(255,255,255,0.86);
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.94),
-        inset 0 -1px 0 rgba(44,52,63,0.20),
-        0 14px 28px rgba(0,0,0,0.14);
-    }
-
-    .appFrame {
-      display: block;
-      width: 100%;
-      height: 100%;
-      border: 0;
-      border-radius: 8px;
-      background: #eef2f7;
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.78),
-        0 1px 0 rgba(255,255,255,0.46);
-    }
-
-    .fallback {
-      display: none;
-      padding: 18px;
-      color: var(--muted);
-      line-height: 1.4;
-    }
-
-    .fallback a {
-      color: #3f4e63;
-      font-weight: 700;
-    }
-
-    @media (max-width: 720px) {
-      .brand {
-        min-height: 76px;
-        padding:
-          calc(max(8px, env(safe-area-inset-top)))
-          12px
-          8px;
-      }
-
-      .brand img {
-        width: min(150px, 40vw);
-        max-height: 68px;
-      }
-
-      .frameWrap {
-        padding: 6px;
-      }
-
-      .frameBezel {
-        border-radius: 10px;
-        padding: 4px;
-      }
-
-      .appFrame {
-        border-radius: 7px;
-      }
-    }
-  </style>
+<meta charset="utf-8">
+<title>Parlay Tracker</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#d7dde6">
+<meta name="apple-mobile-web-app-title" content="Parlay Tracker">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="icon" href="./favicon.ico?v=favsilver3" sizes="any">
+<link rel="shortcut icon" href="./favicon.ico?v=favsilver3">
+<link rel="apple-touch-icon" sizes="180x180" href="./ssb_apple_touch_home_dark_180.png?v=touch2">
+<link rel="apple-touch-icon-precomposed" sizes="180x180" href="./ssb_apple_touch_home_dark_180.png?v=touch2">
+<link rel="manifest" href="./manifest.json?v=touch2">
+<style>
+:root{--silver-1:#f6f8fb;--silver-2:#e4e9f0;--silver-3:#cfd6df;--silver-4:#adb7c4;--edge-dark:rgba(44,52,63,.34);--shadow:rgba(0,0,0,.16);--gold:#ddb35a;--text:#1a2028}*{box-sizing:border-box}html{margin:0;min-height:100%;background:#d7dde6;-webkit-text-size-adjust:100%;overflow-x:hidden;overflow-y:auto}body{margin:0;min-height:100%;color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;background:radial-gradient(circle at top center,rgba(255,255,255,.88),transparent 36%),repeating-linear-gradient(100deg,rgba(255,255,255,.22) 0,rgba(255,255,255,.22) 1px,rgba(0,0,0,.025) 1px,rgba(0,0,0,.025) 3px,transparent 3px,transparent 11px),linear-gradient(180deg,var(--silver-1) 0%,var(--silver-3) 44%,var(--silver-4) 100%);overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch}.shell{min-height:100svh;display:flex;flex-direction:column;background:radial-gradient(circle at top center,rgba(255,255,255,.68),transparent 36%),linear-gradient(180deg,rgba(255,255,255,.18),rgba(255,255,255,.04)),linear-gradient(180deg,var(--silver-2) 0%,var(--silver-3) 40%,var(--silver-4) 100%)}.brand{position:relative;flex:0 0 auto;display:flex;align-items:center;justify-content:center;min-height:86px;padding:calc(max(10px,env(safe-area-inset-top))) 14px 10px;border-bottom:1px solid var(--edge-dark);background:linear-gradient(180deg,rgba(255,255,255,.90),rgba(235,240,246,.76) 28%,rgba(178,188,201,.84) 100%),repeating-linear-gradient(98deg,rgba(255,255,255,.20) 0,rgba(255,255,255,.20) 1px,rgba(0,0,0,.02) 1px,rgba(0,0,0,.02) 3px,transparent 3px,transparent 11px);box-shadow:inset 0 1px 0 rgba(255,255,255,.94),inset 0 -1px 0 rgba(44,52,63,.18),0 8px 18px var(--shadow);overflow:hidden}.brand:before{content:"";position:absolute;inset:0;background:linear-gradient(110deg,rgba(255,255,255,.52),transparent 30%,rgba(255,255,255,.12) 58%,transparent 82%);pointer-events:none}.brand:after{content:"";position:absolute;left:14px;right:14px;bottom:0;height:2px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.95),rgba(221,179,90,.72),rgba(255,255,255,.95),transparent);opacity:.9;pointer-events:none}.brand img{position:relative;z-index:1;display:block;width:min(168px,44vw);max-height:76px;object-fit:contain;filter:drop-shadow(0 5px 8px rgba(0,0,0,.16))}.frameWrap{flex:1 1 auto;min-height:0;padding:10px;background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.02)),linear-gradient(180deg,#d8dee7 0%,#c4ccd7 100%)}.frameBezel{width:100%;min-height:calc(100svh - 104px);border-radius:12px;padding:6px;background:linear-gradient(180deg,rgba(255,255,255,.86),rgba(218,225,234,.84) 36%,rgba(146,157,171,.90) 100%);border:1px solid rgba(255,255,255,.86);box-shadow:inset 0 1px 0 rgba(255,255,255,.94),inset 0 -1px 0 rgba(44,52,63,.20),0 14px 28px rgba(0,0,0,.14)}.appFrame{display:block;width:100%;height:var(--app-frame-height,2600px);min-height:calc(100svh - 120px);border:0;border-radius:8px;background:#eef2f7;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.78),0 1px 0 rgba(255,255,255,.46)}@media(max-width:720px){.brand{min-height:76px;padding:calc(max(8px,env(safe-area-inset-top))) 12px 8px}.brand img{width:min(150px,40vw);max-height:68px}.frameWrap{padding:6px}.frameBezel{border-radius:10px;padding:4px}.appFrame{border-radius:7px}}
+</style>
 </head>
-
 <body>
-  <div class="shell">
-    <header class="brand" aria-label="Simon Sports Betting">
-      <img src="./ssb_emblem_webapp_logo_transparent_768.png" alt="SSB">
-    </header>
-
-    <div class="frameWrap">
-      <div class="frameBezel">
-        <iframe
-          class="appFrame"
-          src="https://script.google.com/macros/s/AKfycbzPrITdaAT9azpkORu3wDh9m-nQF1JyTfUjx58PDxbtjIcHZKk-7xCV9bwauTDQ6YKDHw/exec"
-          title="Parlay Tracker"
-          allow="clipboard-read; clipboard-write">
-        </iframe>
-      </div>
-    </div>
-
-    <noscript>
-      <div class="fallback">
-        JavaScript is required. Open the builder directly:
-        <a href="https://script.google.com/macros/s/AKfycbzPrITdaAT9azpkORu3wDh9m-nQF1JyTfUjx58PDxbtjIcHZKk-7xCV9bwauTDQ6YKDHw/exec">Parlay Tracker</a>
-      </div>
-    </noscript>
-  </div>
+<div class="shell">
+<header class="brand" aria-label="Simon Sports Betting"><img src="./ssb_emblem_webapp_logo_transparent_768.png" alt="SSB"></header>
+<div class="frameWrap"><div class="frameBezel"><iframe class="appFrame" src="https://script.google.com/macros/s/AKfycbzPrITdaAT9azpkORu3wDh9m-nQF1JyTfUjx58PDxbtjIcHZKk-7xCV9bwauTDQ6YKDHw/exec" title="Parlay Tracker" scrolling="no" allow="clipboard-read; clipboard-write"></iframe></div></div>
+<noscript>JavaScript is required.</noscript>
+</div>
+<script>
+(function(){
+const MESSAGE_TYPE="PARLAY_TRACKER_HEIGHT";
+const MIN_FRAME_HEIGHT=1200;
+const HEIGHT_PADDING=60;
+const MAX_FRAME_HEIGHT=12000;
+const frame=document.querySelector(".appFrame");
+if(!frame)return;
+function setFrameHeight(rawHeight){
+const numericHeight=Number(rawHeight);
+if(!Number.isFinite(numericHeight)||numericHeight<=0)return;
+const nextHeight=Math.max(MIN_FRAME_HEIGHT,Math.min(MAX_FRAME_HEIGHT,Math.ceil(numericHeight+HEIGHT_PADDING)));
+document.documentElement.style.setProperty("--app-frame-height",nextHeight+"px");
+frame.style.height=nextHeight+"px";
+}
+window.addEventListener("message",function(event){const data=event.data||{};if(data.type!==MESSAGE_TYPE)return;setFrameHeight(data.height);});
+frame.addEventListener("load",function(){setTimeout(function(){setFrameHeight(2600);window.scrollTo(window.scrollX,window.scrollY+1);window.scrollTo(window.scrollX,Math.max(0,window.scrollY-1));},150);});
+})();
+</script>
 </body>
 </html>
