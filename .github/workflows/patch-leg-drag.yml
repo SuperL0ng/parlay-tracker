@@ -2,9 +2,6 @@ name: Patch leg drag and labels
 
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - '.github/workflows/patch-leg-drag.yml'
 
 permissions:
   contents: write
@@ -23,10 +20,17 @@ jobs:
           path = Path('index.html')
           text = path.read_text(encoding='utf-8')
 
-          old_grip = '.grip{color:#111820;border:1px solid rgba(105,116,130,.55);background:linear-gradient(180deg,#f8fbff,#d7dee8 48%,#7e8a99);cursor:pointer;user-select:none}'
-          new_grip = '.grip{color:#111820;border:1px solid rgba(105,116,130,.55);background:linear-gradient(180deg,#f8fbff,#d7dee8 48%,#7e8a99);cursor:grab;user-select:none;touch-action:none;-webkit-user-select:none}.leg.dragging{opacity:.78;filter:none;position:relative;z-index:20}.leg.dragTarget{box-shadow:0 -3px 0 #c89232}'
-          text = text.replace(old_grip, new_grip)
-          text = text.replace('class="grip multiOnly" onclick="moveLeg(this)" title="Move leg"', 'class="grip multiOnly" title="Drag to reorder" aria-label="Drag to reorder leg"')
+          text = re.sub(
+              r'\.grip\{color:#111820;border:1px solid rgba\(105,116,130,\.55\);background:linear-gradient\(180deg,#f8fbff,#d7dee8 48%,#7e8a99\);cursor:(?:pointer|grab);user-select:none(?:;touch-action:none;-webkit-user-select:none)?\}(?:\.leg\.dragging\{.*?\}\.leg\.dragTarget\{.*?\})?',
+              '.grip{color:#111820;border:1px solid rgba(105,116,130,.55);background:linear-gradient(180deg,#f8fbff,#d7dee8 48%,#7e8a99);cursor:grab;user-select:none;touch-action:none;-webkit-user-select:none}.leg.dragging{opacity:.78;filter:none;position:relative;z-index:20}.leg.dragTarget{box-shadow:0 -3px 0 #c89232}',
+              text,
+              count=1,
+              flags=re.S,
+          )
+          text = text.replace(
+              'class="grip multiOnly" onclick="moveLeg(this)" title="Move leg"',
+              'class="grip multiOnly" title="Drag to reorder" aria-label="Drag to reorder leg"',
+          )
 
           label_fn = r'''function autoLabel(d){
             let t=d.querySelector(".ltype").value,
@@ -61,27 +65,34 @@ jobs:
             }
             return label[t]||t;
           }'''
-          text, count = re.subn(r'function autoLabel\(d\)\{.*?\}(?=function autoFillLabel)', label_fn, text, count=1, flags=re.S)
+          text, count = re.subn(
+              r'function autoLabel\(d\)\{.*?\}(?=function displayTitle)',
+              label_fn,
+              text,
+              count=1,
+              flags=re.S,
+          )
           if count != 1:
               raise SystemExit('autoLabel function not found')
 
           marker = 'window.addEventListener("load",init);'
           if 'function beginLegDrag(e)' not in text:
-            drag_code = r'''let dragLeg=null,dragPointerId=null;
+              drag_code = r'''let dragLeg=null,dragPointerId=null;
           function beginLegDrag(e){const handle=e.target.closest('.grip');if(!handle||handle.classList.contains('hide'))return;const leg=handle.closest('.leg');if(!leg)return;e.preventDefault();dragLeg=leg;dragPointerId=e.pointerId;leg.classList.add('dragging');handle.setPointerCapture?.(e.pointerId);document.body.style.userSelect='none'}
           function moveLegDrag(e){if(!dragLeg||e.pointerId!==dragPointerId)return;e.preventDefault();const siblings=[...document.querySelectorAll('#legs > .leg')].filter(x=>x!==dragLeg);let before=null;for(const item of siblings){const r=item.getBoundingClientRect();item.classList.remove('dragTarget');if(before===null&&e.clientY<r.top+r.height/2)before=item}if(before){before.classList.add('dragTarget');$('legs').insertBefore(dragLeg,before)}else{$('legs').appendChild(dragLeg)}}
           function endLegDrag(e){if(!dragLeg||e.pointerId!==dragPointerId)return;e.preventDefault();document.querySelectorAll('.leg.dragTarget').forEach(x=>x.classList.remove('dragTarget'));dragLeg.classList.remove('dragging');dragLeg=null;dragPointerId=null;document.body.style.userSelect='';renumber();updateMultiControls();preview()}
           document.addEventListener('pointerdown',beginLegDrag,{passive:false});document.addEventListener('pointermove',moveLegDrag,{passive:false});document.addEventListener('pointerup',endLegDrag,{passive:false});document.addEventListener('pointercancel',endLegDrag,{passive:false});window.addEventListener("load",init);'''
-            if marker not in text:
-              raise SystemExit('load marker not found')
-            text = text.replace(marker, drag_code, 1)
+              if marker not in text:
+                  raise SystemExit('load marker not found')
+              text = text.replace(marker, drag_code, 1)
 
           path.write_text(text, encoding='utf-8')
+
       - name: Commit patch
         run: |
           git config user.name "github-actions[bot]"
-          git config user.email "41898242+github-actions[bot]@users.noreply.github.com"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add index.html
           git diff --cached --quiet && exit 0
-          git commit -m "Enable touch drag and correct auto labels"
+          git commit -m "Enable drag reorder and correct labels"
           git push
