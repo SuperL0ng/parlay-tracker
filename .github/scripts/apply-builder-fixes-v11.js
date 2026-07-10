@@ -17,7 +17,7 @@ const css = String.raw`
 .leg .grip{display:none}
 .leg .miniRemove{display:none;width:42px;height:34px;padding:0}
 .leg .miniRemove.preReorderVisible{display:inline-flex}
-body:not(.reorderMode) #legs>.leg{margin-top:12px;padding:12px;border:1px solid rgba(255,255,255,.76);border-radius:10px;background:linear-gradient(180deg,rgba(248,250,253,.72),rgba(190,200,213,.58));box-shadow:inset 0 1px 0 rgba(255,255,255,.88),0 3px 8px rgba(0,0,0,.12)}
+body:not(.reorderMode) #legs>.leg{margin-top:12px;padding:12px;border:1px solid rgba(255,255,255,.8);border-radius:10px;background:linear-gradient(180deg,rgba(252,253,255,.78),rgba(181,192,207,.64));box-shadow:inset 0 1px 0 rgba(255,255,255,.92),0 3px 9px rgba(0,0,0,.14)}
 body:not(.reorderMode) #legs>.leg+.leg{margin-top:14px}
 body.reorderMode .leg{margin-top:10px;padding:11px 10px;border:1px solid rgba(255,255,255,.72);border-radius:10px;background:linear-gradient(180deg,rgba(250,252,255,.86),rgba(197,206,218,.82));box-shadow:inset 0 1px 0 rgba(255,255,255,.88),0 3px 8px rgba(0,0,0,.12);touch-action:pan-y;-webkit-user-select:none;user-select:none}
 body.reorderMode .leg.straightInactive{opacity:1;filter:none}
