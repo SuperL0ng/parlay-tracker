@@ -21,6 +21,7 @@
 
 
 
+
 /* BUILDER_REORDER_MODE_V11 */
 .legsTitleRow{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:4px}
 .reorderToggle{display:none;width:auto;min-width:126px;padding:9px 11px;font-size:11px}
@@ -30,7 +31,7 @@
 .leg .grip{display:none}
 .leg .miniRemove{display:none;width:42px;height:34px;padding:0}
 .leg .miniRemove.preReorderVisible{display:inline-flex}
-body:not(.reorderMode) #legs>.leg{margin-top:12px;padding:12px;border:1px solid rgba(255,255,255,.76);border-radius:10px;background:linear-gradient(180deg,rgba(248,250,253,.72),rgba(190,200,213,.58));box-shadow:inset 0 1px 0 rgba(255,255,255,.88),0 3px 8px rgba(0,0,0,.12)}
+body:not(.reorderMode) #legs>.leg{margin-top:12px;padding:12px;border:1px solid rgba(255,255,255,.8);border-radius:10px;background:linear-gradient(180deg,rgba(252,253,255,.78),rgba(181,192,207,.64));box-shadow:inset 0 1px 0 rgba(255,255,255,.92),0 3px 9px rgba(0,0,0,.14)}
 body:not(.reorderMode) #legs>.leg+.leg{margin-top:14px}
 body.reorderMode .leg{margin-top:10px;padding:11px 10px;border:1px solid rgba(255,255,255,.72);border-radius:10px;background:linear-gradient(180deg,rgba(250,252,255,.86),rgba(197,206,218,.82));box-shadow:inset 0 1px 0 rgba(255,255,255,.88),0 3px 8px rgba(0,0,0,.12);touch-action:pan-y;-webkit-user-select:none;user-select:none}
 body.reorderMode .leg.straightInactive{opacity:1;filter:none}
@@ -103,6 +104,7 @@ function jsVal(v){if(typeof v==="string")return JSON.stringify(v);if(Array.isArr
 function preview(){let o=rawTicket(),issues=[];if(o.title==="Untitled")issues.push("Missing odds/title");if(!o.date)issues.push("Missing date");if(o.type!=="parlay"&&!o.game)issues.push("Missing ticket game");if(o.type==="straight"&&o.legs.length!==1)issues.push("Select one active straight bet");if(o.type==="sgp"&&o.legs.some(l=>l.game&&l.game!==o.game))issues.push("SGP legs must share the ticket game");o.legs.forEach((l,i)=>{if(!l.label)issues.push(`Leg ${i+1}: missing label`);if(needsTeam(l.type)&&!l.team)issues.push(`Leg ${i+1}: missing team`);if(isPlayer(l.type)&&!l.player)issues.push(`Leg ${i+1}: missing player`);if(needsTarget(l.type)&&(l.target===undefined||l.target===null||l.target===""))issues.push(`Leg ${i+1}: missing target`);if(o.type==="parlay"&&!l.game)issues.push(`Leg ${i+1}: missing game`)});$("warnings").textContent=issues.join("\n");$("previewStatus").textContent=issues.length?issues.length+" issues":"ready";$("preview").innerHTML=`<div class="ticket"><div class="ticketTop"><span class="title">${esc(o.title)}</span><span class="badge">${esc(o.type.toUpperCase())}</span></div><div class="meta">${esc([o.game,o.date].filter(Boolean).join(" · "))}</div>${o.legs.map(l=>`<div class="pline"><div><b>${esc(l.label||"Untitled")}</b><div class="sub">${esc([l.game,l.team,l.player].filter(Boolean).join(" · "))}</div></div><div>${esc(l.target??"")}</div></div>`).join("")}</div>`}
 function init(){$("date").value=today();["tracker","ticketType","ticketLeague","date"].forEach(id=>$(id).addEventListener("change",()=>{if(id==="tracker")$("ticketLeagueWrap").classList.toggle("hide",$("tracker").value==="worldcup");if(id==="ticketType"&&ttype()==="straight"){let legs=[...document.querySelectorAll(".leg")];if(legs.length)straightActiveLegId=legs[legs.length-1].dataset.legId}loadGames();syncLegs();updateMultiControls();preview()}));$("ticketGame").addEventListener("change",()=>{showManual($("ticketGame"),$("ticketGameManual"));syncLegs();preview()});$("ticketGameManual").addEventListener("input",()=>{syncLegs();preview()});$("odds").addEventListener("input",preview);addLeg();loadGames();preview()}
 window.addEventListener("load",init);
+
 
 
 
