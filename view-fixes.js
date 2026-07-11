@@ -1,4 +1,4 @@
-/* PARLAY_VIEW_FIXES_V25 */
+/* PARLAY_VIEW_FIXES_V26 */
 (() => {
   'use strict';
 
@@ -34,7 +34,7 @@
     if(!logo)return;
     if(!logo.dataset.fullLogoSrc)logo.dataset.fullLogoSrc=logo.getAttribute('src')||'';
     if(inTicketView){
-      logo.src='./ssb_apple_touch_home_dark_180.png?v=compact-view-25';
+      logo.src='./ssb_emblem_webapp_logo_transparent_768.png?v=compact-view-26';
       logo.alt='Simon Sports Betting';
     }else if(logo.dataset.fullLogoSrc){
       logo.src=logo.dataset.fullLogoSrc;
