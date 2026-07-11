@@ -1,0 +1,28 @@
+name: Fix game option labels
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/scripts/fix-game-option-labels-v13.js
+      - .github/workflows/fix-game-option-labels-v13.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Preserve game times and selected labels
+        run: node .github/scripts/fix-game-option-labels-v13.js
+      - name: Commit corrected labels
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git diff --cached --quiet && exit 0
+          git commit -m "Preserve game times in readable dropdowns"
+          git push
