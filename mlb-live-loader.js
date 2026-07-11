@@ -1,8 +1,8 @@
-/* MLB live runtime bootstrap V25 */
+/* MLB live runtime bootstrap V26 */
 (async()=>{
   'use strict';
   try{
-    const response=await fetch('./mlb-live.js?v=25',{cache:'no-store'});
+    const response=await fetch('./mlb-live.js?v=26',{cache:'no-store'});
     if(!response.ok)throw new Error('MLB runtime HTTP '+response.status);
     let code=await response.text();
 
@@ -13,6 +13,10 @@
     const oldTeam="if(t==='team_total_over'||t==='team_total_under')return overUnder(score,target,t==='team_total_over',final,started);";
     const newTeam="if(t==='team_total_over'||t==='team_total_under'){const r=overUnder(score,target,t==='team_total_over',final,started);r.display=`${score} / ${target}`;return r;}";
     if(code.includes(oldTeam))code=code.replace(oldTeam,newTeam);
+
+    const oldManual="if(t==='manual')return result('PENDING',null,null,'Manual');";
+    const newManual="if(t==='manual'){const current=Number(leg.current??0),manualTarget=Number(leg.target??1);return result(current>=manualTarget?'WIN':'PENDING',current,manualTarget,`${current} / ${manualTarget}`);}";
+    if(code.includes(oldManual))code=code.replace(oldManual,newManual);
 
     const oldPlayerFns="function batting(feed,name){return findPlayer(feed,name)?.stats?.batting||null}\n  function pitching(feed,name){return findPlayer(feed,name)?.stats?.pitching||null}";
     const newPlayerFns=`function batting(feed,name){return findPlayer(feed,name)?.stats?.batting||null}
@@ -47,7 +51,7 @@
     const oldInit="window.addEventListener('load',()=>setTimeout(wireRefresh,0));";
     const newInit="window.__parlayLiveRefresh=()=>{feedCache.clear();document.getElementById('liveRefreshStatus')?.remove();refreshStandaloneLive()};window.addEventListener('parlay:viewchange',()=>setTimeout(wireRefresh,0));if(document.readyState==='loading'){window.addEventListener('load',()=>setTimeout(wireRefresh,0),{once:true})}else{setTimeout(wireRefresh,0)}";
     if(!code.includes(oldInit))throw new Error('MLB runtime initialization marker missing');
-    code=code.replace(oldInit,newInit)+'\n//# sourceURL=mlb-live-runtime-v25.js';
+    code=code.replace(oldInit,newInit)+'\n//# sourceURL=mlb-live-runtime-v26.js';
     (0,eval)(code);
   }catch(error){
     console.error('MLB live runtime failed to initialize',error);
