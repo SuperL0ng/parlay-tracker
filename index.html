@@ -52,6 +52,12 @@ body.reorderDraggingActive .grip{cursor:grabbing!important;touch-action:none!imp
 .reorderHint{display:none;margin:8px 0 2px;text-align:center;color:#596372;font-size:11px;font-weight:750;letter-spacing:.04em}
 body.reorderMode .reorderHint{display:block}
 
+
+/* NATIVE_DATE_WIDTH_FIX_V1 */
+.grid2>div{min-width:0;max-width:100%}
+input[type="date"]{display:block;width:100%;max-width:100%;min-width:0;inline-size:100%;max-inline-size:100%;min-inline-size:0;box-sizing:border-box;padding-left:6px;padding-right:6px;font-size:12px}
+input[type="date"]::-webkit-date-and-time-value{min-width:0;text-align:left}
+
 </style>
 </head>
 <body>
