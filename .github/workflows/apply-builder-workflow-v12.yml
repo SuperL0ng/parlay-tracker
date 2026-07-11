@@ -1,0 +1,28 @@
+name: Apply builder selection and result workflow
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/scripts/apply-builder-workflow-v12.js
+      - .github/workflows/apply-builder-workflow-v12.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply builder workflow update
+        run: node .github/scripts/apply-builder-workflow-v12.js
+      - name: Commit builder workflow update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git diff --cached --quiet && exit 0
+          git commit -m "Improve team game selection and code access"
+          git push
