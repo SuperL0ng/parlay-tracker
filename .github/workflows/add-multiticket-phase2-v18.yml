@@ -26,3 +26,5 @@ jobs:
           git diff --cached --quiet && exit 0
           git commit -m "Add persistent multi-ticket dashboard"
           git push
+
+# trigger: phase2-v18
