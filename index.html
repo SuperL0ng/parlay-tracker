@@ -15,7 +15,7 @@
     const response=await fetch(base,{cache:'no-store'});
     if(!response.ok)throw new Error('Base app HTTP '+response.status);
     let html=await response.text();
-    html=html.replace('</body>','<script src="./mlb-live-loader.js?v=44"><\/script><script src="./view-fixes.js?v=44"><\/script><script src="./navigation-links-v24.js?v=44"><\/script><script src="./manual-fields.js?v=44"><\/script><script src="./settlement-status.js?v=44"><\/script><script src="./actual-settlement-time.js?v=44"><\/script><script src="./code-panel-default.js?v=44"><\/script><script src="./ticket-sharing.js?v=44"><\/script><script src="./import-mlb-default.js?v=44"><\/script><script src="./optional-sportsbook.js?v=44"><\/script></body>');
+    html=html.replace('</body>','<script src="./mlb-live-loader.js?v=45"><\/script><script src="./view-fixes.js?v=45"><\/script><script src="./navigation-links-v24.js?v=45"><\/script><script src="./manual-fields.js?v=45"><\/script><script src="./settlement-status.js?v=45"><\/script><script src="./actual-settlement-time.js?v=45"><\/script><script src="./code-panel-default.js?v=45"><\/script><script src="./ticket-sharing.js?v=45"><\/script><script src="./optional-sportsbook.js?v=45"><\/script></body>');
     document.open();
     document.write(html);
     document.close();
