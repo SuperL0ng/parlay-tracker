@@ -1,8 +1,8 @@
-/* MLB live runtime bootstrap V34 */
+/* MLB live runtime bootstrap V35 */
 (async()=>{
   'use strict';
   try{
-    const response=await fetch('./mlb-live.js?v=34',{cache:'no-store'});
+    const response=await fetch('./mlb-live.js?v=35',{cache:'no-store'});
     if(!response.ok)throw new Error('MLB runtime HTTP '+response.status);
     let code=await response.text();
 
@@ -26,6 +26,11 @@
     const oldPlayerFns="function batting(feed,name){return findPlayer(feed,name)?.stats?.batting||null}\n  function pitching(feed,name){return findPlayer(feed,name)?.stats?.pitching||null}";
     const newPlayerFns=`function batting(feed,name){return findPlayer(feed,name)?.stats?.batting||null}
   function pitching(feed,name){return findPlayer(feed,name)?.stats?.pitching||null}
+  function pitcherFinished(feed,name){
+    const player=findPlayer(feed,name),stats=player?.stats?.pitching||{};
+    const appeared=Number(stats.battersFaced||0)>0||Number(stats.outs||0)>0||cleanText(stats.inningsPitched)!=='';
+    return Boolean(appeared&&hasStarted(feed)&&!player?.gameStatus?.isCurrentPitcher);
+  }
   function playStats(feed,name){
     const wanted=norm(name),out={hits:0,runs:0,rbi:0};
     if(!wanted)return out;
@@ -52,6 +57,19 @@
     if(!code.includes(oldPlayerFns))throw new Error('MLB player-stat marker missing');
     code=code.replace(oldPlayerFns,newPlayerFns);
     code=code.replace(/player_hrrbi:b\?Number\(b\.hits\|\|0\)\+Number\(b\.runs\|\|0\)\+Number\(b\.rbi\|\|0\):null/,'player_hrrbi:hrrbiLive(feed,player,b)');
+
+    const oldPitcherMilestone="if(Object.prototype.hasOwnProperty.call(map,t))return milestone(Number(map[t]??0),target,feed);";
+    const newPitcherMilestone="if(Object.prototype.hasOwnProperty.call(map,t)){const cur=Number(map[t]??0);if(t==='pitcher_ks'&&cur<target&&pitcherFinished(feed,player))return result('LOSS',cur,target,`${cur} / ${target}`,'Pitcher removed');return milestone(cur,target,feed);}";
+    if(!code.includes(oldPitcherMilestone))throw new Error('Pitcher milestone marker missing');
+    code=code.replace(oldPitcherMilestone,newPitcherMilestone);
+
+    const oldKsUnder="if(t==='pitcher_ks_under'){const cur=Number(p?.strikeOuts||0);if(cur>=target)return result('LOSS',cur,target,`${cur} / U${target}`);if(final)return result('WIN',cur,target,`${cur} / U${target}`);return result(started?'LIVE':'PENDING',cur,target,`${cur} / U${target}`)}";
+    const newKsUnder="if(t==='pitcher_ks_under'){const cur=Number(p?.strikeOuts||0);if(cur>=target)return result('LOSS',cur,target,`${cur} / U${target}`);if(final||pitcherFinished(feed,player))return result('WIN',cur,target,`${cur} / U${target}`,pitcherFinished(feed,player)?'Pitcher removed':'');return result(started?'LIVE':'PENDING',cur,target,`${cur} / U${target}`)}";
+    if(code.includes(oldKsUnder))code=code.replace(oldKsUnder,newKsUnder);
+
+    const oldOutsUnder="if(t==='pitcher_outs_under'){const cur=outsFromIP(p?.inningsPitched);if(cur>=target)return result('LOSS',cur,target,`${cur} / U${target}`);if(final)return result('WIN',cur,target,`${cur} / U${target}`);return result(started?'LIVE':'PENDING',cur,target,`${cur} / U${target}`)}";
+    const newOutsUnder="if(t==='pitcher_outs_under'){const cur=outsFromIP(p?.inningsPitched);if(cur>=target)return result('LOSS',cur,target,`${cur} / U${target}`);if(final||pitcherFinished(feed,player))return result('WIN',cur,target,`${cur} / U${target}`,pitcherFinished(feed,player)?'Pitcher removed':'');return result(started?'LIVE':'PENDING',cur,target,`${cur} / U${target}`)}";
+    if(code.includes(oldOutsUnder))code=code.replace(oldOutsUnder,newOutsUnder);
 
     const summaryCss=".liveSummary{margin:8px 0 2px;font-size:11px;font-weight:850;color:#596372}";
     const outcomeCss=summaryCss+".ticketOutcome{display:inline-block;margin:8px 0 2px;padding:5px 9px;border-radius:7px;font-size:10px;font-weight:900;letter-spacing:.08em}.ticketOutcome.WON{background:#bfe3bd;color:#154e18}.ticketOutcome.LOST{background:#efc1bc;color:#7a1710}.ticketOutcome.LIVE{background:#f1dda5;color:#674500}.ticketOutcome.PENDING{background:#d7dde6;color:#4f5966}.ticketOutcome.PUSH{background:#d7dde6;color:#4f5966}.ticketOutcome.SUSPENDED{background:#e0cbd9;color:#683451}.liveTicketCard.ticketWon{box-shadow:inset 0 0 0 2px rgba(56,139,63,.22)}.liveTicketCard.ticketLost{box-shadow:inset 0 0 0 2px rgba(173,55,43,.22)}";
@@ -85,7 +103,7 @@
     const oldInit="window.addEventListener('load',()=>setTimeout(wireRefresh,0));";
     const newInit="window.__parlayLiveRefresh=()=>{feedCache.clear();document.getElementById('liveRefreshStatus')?.remove();refreshStandaloneLive()};window.addEventListener('parlay:viewchange',()=>setTimeout(wireRefresh,0));if(document.readyState==='loading'){window.addEventListener('load',()=>setTimeout(wireRefresh,0),{once:true})}else{setTimeout(wireRefresh,0)}";
     if(!code.includes(oldInit))throw new Error('MLB runtime initialization marker missing');
-    code=code.replace(oldInit,newInit)+'\n//# sourceURL=mlb-live-runtime-v34.js';
+    code=code.replace(oldInit,newInit)+'\n//# sourceURL=mlb-live-runtime-v35.js';
     (0,eval)(code);
   }catch(error){
     console.error('MLB live runtime failed to initialize',error);
