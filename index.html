@@ -15,7 +15,7 @@
     const response=await fetch(base,{cache:'no-store'});
     if(!response.ok)throw new Error('Base app HTTP '+response.status);
     let html=await response.text();
-    html=html.replace('</body>','<script src="./mlb-live-loader.js?v=38"><\/script><script src="./view-fixes.js?v=38"><\/script><script src="./navigation-links-v24.js?v=38"><\/script><script src="./manual-fields.js?v=38"><\/script><script src="./settlement-status.js?v=38"><\/script></body>');
+    html=html.replace('</body>','<script src="./mlb-live-loader.js?v=39"><\/script><script src="./view-fixes.js?v=39"><\/script><script src="./navigation-links-v24.js?v=39"><\/script><script src="./manual-fields.js?v=39"><\/script><script src="./settlement-status.js?v=39"><\/script><script src="./actual-settlement-time.js?v=39"><\/script></body>');
     document.open();
     document.write(html);
     document.close();
