@@ -15,7 +15,7 @@
     const response=await fetch(base,{cache:'no-store'});
     if(!response.ok)throw new Error('Base app HTTP '+response.status);
     let html=await response.text();
-    html=html.replace('</body>','<script src="./mlb-live-loader.js?v=47"><\/script><script src="./view-fixes.js?v=47"><\/script><script src="./navigation-links-v24.js?v=47"><\/script><script src="./manual-fields.js?v=47"><\/script><script src="./settlement-status.js?v=47"><\/script><script src="./actual-settlement-time.js?v=47"><\/script><script src="./code-panel-default.js?v=47"><\/script><script src="./ticket-sharing.js?v=47"><\/script><script src="./optional-sportsbook.js?v=47"><\/script><script src="./league-code-output.js?v=47"><\/script><script src="./reference-slip.js?v=47"><\/script></body>');
+    html=html.replace('</body>','<script src="./mlb-live-loader.js?v=48"><\/script><script src="./view-fixes.js?v=48"><\/script><script src="./navigation-links-v24.js?v=48"><\/script><script src="./manual-fields.js?v=48"><\/script><script src="./settlement-status.js?v=48"><\/script><script src="./actual-settlement-time.js?v=48"><\/script><script src="./code-panel-default.js?v=48"><\/script><script src="./ticket-sharing.js?v=48"><\/script><script src="./optional-sportsbook.js?v=48"><\/script><script src="./league-code-output.js?v=48"><\/script><script src="./reference-slip.js?v=48"><\/script></body>');
     document.open();
     document.write(html);
     document.close();
