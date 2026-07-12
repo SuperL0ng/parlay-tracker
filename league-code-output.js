@@ -1,4 +1,4 @@
-/* LEAGUE_CODE_OUTPUT_V46 */
+/* LEAGUE_CODE_OUTPUT_V49 */
 (() => {
   'use strict';
 
@@ -14,15 +14,17 @@
     };
 
     const ticketLeague=clean(raw.league);
+    const ticketGame=clean(raw.game);
     if(ticketLeague)out.league=ticketLeague;
-    if((raw.type==='sgp'||raw.type==='straight')&&raw.game)out.game=raw.game;
+    if(ticketGame)out.game=ticketGame;
 
     out.legs=(raw.legs||[]).map(source=>{
       const leg={label:source.label||'',type:source.type||''};
       const legLeague=clean(source.league);
+      const legGame=clean(source.game);
       if(legLeague&&legLeague!==ticketLeague)leg.league=legLeague;
       if(raw.type==='parlay'){
-        if(source.game)leg.game=source.game;
+        if(legGame&&legGame!==ticketGame)leg.game=legGame;
         if(source.date&&source.date!==raw.date)leg.date=source.date;
       }
       if(source.team)leg.team=source.team;
