@@ -6,6 +6,7 @@
   const SETTLED=new Set(['WON','LOST','PUSH']);
   let scanTimer=null;
   let scanAttempts=0;
+  let dashboardOverridesInstalled=false;
 
   const css=`
     .liveTicketCard.ticketWon{
@@ -156,7 +157,10 @@
   }
 
   function installDashboardOverrides(){
-    if(typeof window.renderTicketDashboard==='function')window.renderTicketDashboard=enhancedDashboard;
+    if(dashboardOverridesInstalled)return;
+    if(typeof window.renderTicketDashboard!=='function')return;
+    dashboardOverridesInstalled=true;
+    window.renderTicketDashboard=enhancedDashboard;
 
     if(typeof window.toggleSavedTicketStatus==='function'){
       window.toggleSavedTicketStatus=function(id){
