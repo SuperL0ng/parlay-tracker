@@ -1,0 +1,44 @@
+/* PARLAY TRACKER CORE V51 — ported from canonical Scriptable trackers */
+(() => {
+  'use strict';
+  const TZ='America/Chicago';
+  const TEAM_ALIASES={
+    ATH:['ATH','Athletics','Oakland Athletics',"A's"],ARI:['ARI','Arizona Diamondbacks','Diamondbacks'],ATL:['ATL','Atlanta Braves','Braves','Atlanta Hawks','Hawks','Atlanta Dream','Dream'],BAL:['BAL','Baltimore Orioles','Orioles'],BOS:['BOS','Boston Red Sox','Red Sox','Boston Celtics','Celtics'],CHC:['CHC','Chicago Cubs','Cubs'],CWS:['CWS','CHW','Chicago White Sox','White Sox'],CIN:['CIN','Cincinnati Reds','Reds'],CLE:['CLE','Cleveland Guardians','Guardians','Cleveland Cavaliers','Cavaliers'],COL:['COL','Colorado Rockies','Rockies'],DET:['DET','Detroit Tigers','Tigers','Detroit Pistons','Pistons'],HOU:['HOU','Houston Astros','Astros','Houston Rockets','Rockets'],KC:['KC','KCR','Kansas City Royals','Royals'],LAA:['LAA','Los Angeles Angels','Angels'],LAD:['LAD','Los Angeles Dodgers','Dodgers'],MIA:['MIA','Miami Marlins','Marlins','Miami Heat','Heat'],MIL:['MIL','Milwaukee Brewers','Brewers','Milwaukee Bucks','Bucks'],MIN:['MIN','Minnesota Twins','Twins','Minnesota Timberwolves','Timberwolves','Minnesota Lynx','Lynx'],NYM:['NYM','New York Mets','Mets'],NYY:['NYY','New York Yankees','Yankees'],PHI:['PHI','Philadelphia Phillies','Phillies','Philadelphia 76ers','76ers','Sixers'],PIT:['PIT','Pittsburgh Pirates','Pirates'],SD:['SD','SDP','San Diego Padres','Padres'],SEA:['SEA','Seattle Mariners','Mariners','Seattle Storm','Storm'],SF:['SF','SFG','San Francisco Giants','Giants'],STL:['STL','St. Louis Cardinals','Saint Louis Cardinals','Cardinals'],TB:['TB','TBR','Tampa Bay Rays','Rays'],TEX:['TEX','Texas Rangers','Rangers'],TOR:['TOR','Toronto Blue Jays','Blue Jays','Toronto Raptors','Raptors','Toronto Tempo','Tempo'],WSH:['WSH','Washington Nationals','Nationals','Washington Wizards','Wizards','Washington Mystics','Mystics'],
+    BKN:['BKN','Brooklyn Nets','Nets'],CHA:['CHA','Charlotte Hornets','Hornets'],CHI:['CHI','Chicago Bulls','Bulls','Chicago Sky','Sky','Chicago'],DAL:['DAL','Dallas Mavericks','Mavericks','Mavs','Dallas Wings','Wings'],DEN:['DEN','Denver Nuggets','Nuggets'],GSW:['GSW','Golden State Warriors','Warriors'],IND:['IND','Indiana Pacers','Pacers','Indiana Fever','Fever'],LAC:['LAC','LA Clippers','Los Angeles Clippers','Clippers'],LAL:['LAL','Los Angeles Lakers','Lakers'],MEM:['MEM','Memphis Grizzlies','Grizzlies'],NOP:['NOP','New Orleans Pelicans','Pelicans'],NYK:['NYK','New York Knicks','Knicks'],OKC:['OKC','Oklahoma City Thunder','Thunder','Oklahoma City'],ORL:['ORL','Orlando Magic','Magic'],PHX:['PHX','Phoenix Suns','Suns','Phoenix Mercury','Mercury'],POR:['POR','Portland Trail Blazers','Trail Blazers','Blazers','Portland Fire','Fire'],SAC:['SAC','Sacramento Kings','Kings'],SAS:['SAS','San Antonio Spurs','Spurs','San Antonio'],UTAH:['UTAH','UTA','Utah Jazz','Jazz'],
+    CONN:['CONN','CON','Connecticut Sun','Sun','Connecticut'],GSV:['GSV','Golden State Valkyries','Valkyries','Golden State'],LAS:['LAS','LA Sparks','Los Angeles Sparks','Sparks','Los Angeles'],LVA:['LVA','Las Vegas Aces','Aces','Las Vegas'],NYL:['NYL','New York Liberty','Liberty','New York']
+  };
+  function clean(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9 ]/g,'').replace(/\s+/g,' ').trim()}
+  function comps(game){return game?.competitions?.[0]?.competitors||[]}
+  function teamMatches(teamObj,abbr){const names=TEAM_ALIASES[abbr]||[abbr];const vals=[teamObj?.abbreviation,teamObj?.shortDisplayName,teamObj?.displayName,teamObj?.name,teamObj?.location].filter(Boolean);return vals.some(v=>names.some(n=>clean(v)===clean(n)))}
+  function findTeam(game,abbr){return comps(game).find(c=>teamMatches(c.team,abbr))}
+  function score(game,abbr){const t=findTeam(game,abbr);return t?Number(t.score||0):0}
+  function isSuspended(game){const t=game?.status?.type||{};return [t.name,t.description,t.detail,t.shortDetail,t.state].map(x=>String(x||'').toLowerCase()).join(' ').includes('suspended')}
+  function isFinal(game){if(isSuspended(game))return false;const t=game?.status?.type;return !!(t?.completed||t?.state==='post')}
+  function isLive(game){return game?.status?.type?.state==='in'}
+  function hasStarted(game){const s=game?.status?.type?.state;return s==='in'||s==='post'}
+  function outsDots(game){const d=game?.status?.type?.shortDetail||game?.status?.type?.detail||'';if(/^(End|Mid)/i.test(d.trim()))return'';const raw=game?.competitions?.[0]?.situation?.outs;if(raw==null)return'';const n=Number(raw);return ['○○','●○','●●'][n]||''}
+  function detail(game){const d=game?.status?.type?.shortDetail||game?.status?.type?.detail||'';const base=d.replace(/\bTop\s+/i,'↑ ').replace(/\bBot(?:tom)?\s+/i,'↓ ').replace(/\s+/g,' ').trim();const outs=outsDots(game);return outs?`${base} ${outs}`:base}
+  function scheduledCT(game){const d=new Date(game?.date);if(Number.isNaN(d.getTime()))return'';return d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',timeZone:TZ}).replace(' ','')+' CT'}
+  function gameDateCT(game){const d=new Date(game?.date);if(Number.isNaN(d.getTime()))return'';return d.toLocaleDateString('en-CA',{timeZone:TZ,year:'numeric',month:'2-digit',day:'2-digit'}).replace(/-/g,'')}
+  function legGame(ticket,leg){return leg?.game||ticket?.game||''}
+  function effectiveLeague(ticket,leg){return String(leg?.league||ticket?.league||'').trim().toLowerCase()}
+  function findGame(games,key,ticket=null,leg=null){if(!key)return null;const [away,home]=key.split('@');let matches=(games||[]).filter(g=>findTeam(g,away)&&findTeam(g,home));const league=effectiveLeague(ticket,leg);if(league)matches=matches.filter(g=>String(g.__sport||'').toLowerCase()===league);const date=leg?.date||ticket?.date;if(date){const dm=matches.filter(g=>gameDateCT(g)===date);if(dm.length)matches=dm}if(!matches.length)return null;return matches.find(g=>!isFinal(g))||matches[0]}
+  function baseGameMeta(game){return hasStarted(game)?detail(game):scheduledCT(game)}
+  function legMeta(ticket,leg,game){const meta=baseGameMeta(game);if(ticket?.type==='sgp')return meta;const key=legGame(ticket,leg);return key?`${key} - ${meta}`:meta}
+  function total(game){return comps(game).reduce((s,c)=>s+Number(c.score||0),0)}
+  function opponentAbbr(gameKey,team){const [away,home]=String(gameKey||'').split('@');return team===away?home:away}
+  function linescore(game,abbr){const t=findTeam(game,abbr);return (t?.linescores||[]).map(x=>Number(x.value??x.displayValue??0))}
+  function f5Score(game,abbr){return linescore(game,abbr).slice(0,5).reduce((a,b)=>a+b,0)}
+  function f5Complete(game){if(isFinal(game))return true;return comps(game).length===2&&comps(game).every(c=>(c.linescores||[]).length>=5)}
+  function h1Score(game,abbr){return linescore(game,abbr).slice(0,2).reduce((a,b)=>a+b,0)}
+  function h1Complete(game){if(isFinal(game))return true;const p=Number(game?.status?.period||0);return p>=3||comps(game).every(c=>(c.linescores||[]).length>=2)}
+  function fmtRecord(value,line){const v=value==null?0:value;const display=typeof line==='number'&&line%1===0.5?Math.ceil(line):line;return `${v}/${display}`}
+  function statusObj(state,value='',valueClass=''){return{state,value,valueClass}}
+  function gameScoreValue(game,away,home){return `${score(game,away)}-${score(game,home)}`}
+  function marginForPick(game,key,team,spread=0){return score(game,team)+spread-score(game,opponentAbbr(key,team))}
+  function f5MarginForPick(game,key,team,spread=0){return f5Score(game,team)+spread-f5Score(game,opponentAbbr(key,team))}
+  function h1MarginForPick(game,key,team,spread=0){return h1Score(game,team)+spread-h1Score(game,opponentAbbr(key,team))}
+  function trendClass(game,margin){if(margin===0)return'valueTie';const scale=game?.__sport==='mlb'?2:5,m=Math.abs(margin);if(margin>0)return m<scale?'valueAhead1':m<scale*2?'valueAhead2':'valueAhead3';return m<scale?'valueBehind1':m<scale*2?'valueBehind2':'valueBehind3'}
+  function ticketState(states){if(states.some(s=>s.state==='loss'))return'loss';if(states.some(s=>s.state==='suspended'))return'suspended';if(states.length&&states.every(s=>s.state==='push'))return'push';if(states.length&&states.every(s=>s.state==='win'||s.state==='push'))return'win';if(states.some(s=>s.state==='live'))return'live';return'pending'}
+  window.ParlayTrackerCore={TZ,TEAM_ALIASES,clean,comps,teamMatches,findTeam,score,isSuspended,isFinal,isLive,hasStarted,outsDots,detail,scheduledCT,gameDateCT,legGame,effectiveLeague,findGame,baseGameMeta,legMeta,total,opponentAbbr,linescore,f5Score,f5Complete,h1Score,h1Complete,fmtRecord,statusObj,gameScoreValue,marginForPick,f5MarginForPick,h1MarginForPick,trendClass,ticketState};
+})();
