@@ -1,4 +1,4 @@
-/* DASHBOARD LAYOUT V62 — exact action order, dense header, inline sportsbook badge */
+/* DASHBOARD LAYOUT V65 — exact action order, dense header, inline sportsbook badge */
 (() => {
   'use strict';
 
@@ -22,8 +22,8 @@
       #ticketList .savedTitleRow .bookBadge{flex:0 0 auto;margin:0!important}
       #ticketList .savedActions{display:grid!important;grid-template-columns:repeat(12,minmax(0,1fr))!important;gap:8px!important}
       #ticketList .savedActions button{width:100%!important;min-width:0!important;min-height:46px!important;padding:7px 4px!important;display:flex!important;align-items:center!important;justify-content:center!important;text-align:center!important;white-space:normal!important;line-height:1.12!important;font-size:10px!important;font-weight:900!important;letter-spacing:.065em!important}
-      #ticketList .savedActions .actionUse{grid-column:span 4!important}
-      #ticketList .savedActions .actionChange{grid-column:span 3!important}
+      #ticketList .savedActions>.actionUse{grid-column:span 4!important}
+      #ticketList .savedActions>.actionChange{grid-column:span 3!important}
       #ticketList .savedActions .forcedTwoLine{display:block!important;width:100%!important;text-align:center!important}
       @media(max-width:390px){
         #dashboardView .dashboardHeader{grid-template-columns:minmax(102px,.85fr) minmax(0,2.8fr)!important;gap:7px!important}
@@ -42,7 +42,7 @@
   function formatHeaderActions(){
     const actions=document.querySelector('#dashboardView .dashboardActions');
     if(!actions)return;
-    const controls=[...actions.querySelectorAll('button,a')],find=pattern=>controls.find(control=>pattern.test(normalizedText(control)));
+    const controls=[...actions.querySelectorAll(':scope > button,:scope > a')],find=pattern=>controls.find(control=>pattern.test(normalizedText(control)));
     [
       {control:find(/IMPORT/),lines:['IMPORT','CODE']},
       {control:find(/VIEW.*ACTIVE|ACTIVE.*VIEW/),lines:['VIEW','ACTIVE']},
@@ -63,8 +63,8 @@
   function arrangeTicketActions(card){
     formatTicketHeading(card);
     const actions=card.querySelector('.savedActions');
-    if(!actions)return;
-    const buttons=[...actions.querySelectorAll('button')],find=pattern=>buttons.find(button=>pattern.test(normalizedText(button)));
+    if(!actions||actions.dataset.moreReady==='1')return;
+    const buttons=[...actions.querySelectorAll(':scope > button')],find=pattern=>buttons.find(button=>pattern.test(normalizedText(button)));
     [
       {button:find(/^VIEW$/),kind:'actionUse'},
       {button:find(/^COPY CODE$/),kind:'actionUse',lines:['COPY','CODE']},
@@ -77,7 +77,7 @@
   }
 
   function apply(){addCss();formatHeaderActions();document.querySelectorAll('#ticketList .savedTicket').forEach(arrangeTicketActions)}
-  function wrapDashboard(){const original=window.renderTicketDashboard;if(typeof original!=='function'||original.__layoutV62Wrapped)return;const wrapped=function(...args){const out=original.apply(this,args);requestAnimationFrame(apply);return out};wrapped.__layoutV62Wrapped=true;window.renderTicketDashboard=wrapped}
+  function wrapDashboard(){const original=window.renderTicketDashboard;if(typeof original!=='function'||original.__layoutV65Wrapped)return;const wrapped=function(...args){const out=original.apply(this,args);requestAnimationFrame(apply);return out};wrapped.__layoutV65Wrapped=true;window.renderTicketDashboard=wrapped}
 
   wrapDashboard();apply();
   window.addEventListener('load',()=>{wrapDashboard();apply()},{once:true});
