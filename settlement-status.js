@@ -1,4 +1,4 @@
-/* SETTLEMENT_STATUS_V37 */
+/* SETTLEMENT_STATUS_V71 */
 (() => {
   'use strict';
 
@@ -57,6 +57,10 @@
   }
   function store(list){localStorage.setItem(KEY,JSON.stringify(list))}
   function clean(v){return String(v??'').trim()}
+  function rerenderDashboard(){
+    if(typeof window.renderTicketDashboard==='function')window.renderTicketDashboard();
+    else enhancedDashboard();
+  }
   function outcomeFromCard(card){
     const text=clean(card.querySelector('.ticketOutcome')?.textContent).toUpperCase();
     return text.replace(/^TICKET\s+/,'');
@@ -170,13 +174,14 @@
         if(record.status==='completed'){
           record.status='active';
           record.manualActiveOverride=true;
+          record.autoCompleted=false;
         }else{
           record.status='completed';
           record.manualActiveOverride=false;
         }
         record.updatedAt=now;
         store(list);
-        enhancedDashboard();
+        rerenderDashboard();
       };
     }
 
@@ -192,7 +197,7 @@
           delete copy.autoCompleted;
           delete copy.manualActiveOverride;
           store(list);
-          enhancedDashboard();
+          rerenderDashboard();
         }
       };
     }
@@ -203,10 +208,10 @@
   window.addEventListener('load',()=>{
     installDashboardOverrides();
     if(location.hash)scheduleScan();
-    else enhancedDashboard();
+    else rerenderDashboard();
   });
   window.addEventListener('hashchange',()=>{if(location.hash)scheduleScan()});
-  window.addEventListener('storage',e=>{if(e.key===KEY&&!location.hash)enhancedDashboard()});
+  window.addEventListener('storage',e=>{if(e.key===KEY&&!location.hash)rerenderDashboard()});
   document.addEventListener('click',e=>{
     if(/^refresh$/i.test(clean(e.target?.textContent)))scheduleScan();
   },true);
