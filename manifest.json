@@ -1,17 +1,17 @@
 {
   "name": "Parlay Tracker",
   "short_name": "Parlay Tracker",
-  "start_url": "/parlay-builder-wrapper/",
-  "scope": "/parlay-builder-wrapper/",
+  "start_url": "/parlay-tracker/",
+  "scope": "/parlay-tracker/",
   "display": "standalone",
   "background_color": "#d7dde6",
   "theme_color": "#d7dde6",
   "icons": [
     {
-      "src": "./ssb_apple_touch_home_dark_180.png?v=touch2",
-      "sizes": "180x180",
+      "src": "./ssb_emblem_webapp_box_transparent_768.png?v=75",
+      "sizes": "768x768",
       "type": "image/png",
-      "purpose": "any"
+      "purpose": "any maskable"
     }
   ]
 }
