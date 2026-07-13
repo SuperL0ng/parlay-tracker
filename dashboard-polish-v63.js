@@ -1,4 +1,4 @@
-/* DASHBOARD POLISH V63 — My Tickets visual hierarchy and live-tracker treatment */
+/* DASHBOARD POLISH V72 — My Tickets visual hierarchy, stable toolbar, completed badge */
 (() => {
   'use strict';
 
@@ -18,6 +18,7 @@
       #dashboardView .savedMeta{margin-top:4px!important;color:#697482!important;font-size:9px!important;font-weight:800!important;line-height:1.25!important;letter-spacing:.035em!important}
       #dashboardView .savedStateRow{margin-top:5px!important;gap:5px!important}#dashboardView .savedStateBadge{min-height:20px!important;padding:3px 7px!important;border-radius:6px!important;font-size:8px!important;line-height:1!important}
       #dashboardView .savedStateBadge.storage{color:#56606D!important;background:rgba(255,255,255,.28)!important;border:1px solid rgba(91,103,118,.42)!important;box-shadow:none!important}
+      #dashboardView .savedStateBadge.storage.storageCompleted{color:#D4DBE5!important;background:#3F4855!important;border-color:#303844!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 1px 2px rgba(0,0,0,.16)!important}
       #dashboardView .savedStateBadge:not(.storage){border:1px solid rgba(255,255,255,.5)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.55)!important}
       #dashboardView .savedSettlement{margin-top:4px!important;font-size:9px!important}
       #dashboardView .savedOrder{display:flex!important;gap:5px!important;align-items:center!important}
@@ -33,8 +34,19 @@
       #dashboardView .savedActions .actionUse{background:linear-gradient(180deg,#F9FBFE,#D5DDE7 52%,#929EAD)!important;border-color:rgba(93,105,120,.58)!important}
       #dashboardView .savedActions .actionChange{color:#26303B!important;background:linear-gradient(180deg,#E9EDF2,#C5CED9 55%,#8C98A8)!important;border-color:rgba(93,105,120,.46)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.68),0 2px 5px rgba(0,0,0,.12)!important}
       #dashboardView .savedActions button:last-child{color:#FFF!important;border-color:#7B1D28!important;background:linear-gradient(180deg,#E56B79,#B52B3B 56%,#741824)!important}
-      #refreshTicketsBtn.refreshing{opacity:.72;pointer-events:none}#refreshTicketsBtn.refreshing::after{content:'…';letter-spacing:0}
-      @media(max-width:390px){#dashboardView .savedTicket{padding:8px 8px 7px 10px!important}#dashboardView .savedTitleLine h3,#dashboardView .savedTicket h3{font-size:17px!important}#dashboardView .savedActions button{min-height:38px!important}}
+      #dashboardView .dashboardToolbarV55{grid-template-columns:minmax(0,1fr) 74px 100px 58px!important;gap:5px!important}
+      #dashboardView .dashboardToolbarV55 button{width:100%!important;min-width:0!important;padding:7px 3px!important;font-size:8px!important;line-height:1!important;letter-spacing:.025em!important;white-space:nowrap!important}
+      #dashboardView .dashboardToolbarStatus{min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
+      #refreshTicketsBtn{grid-column:2!important}#toggleAllTicketsBtn{grid-column:3!important}#ticketSelectModeBtn{grid-column:4!important}
+      #refreshTicketsBtn.refreshing{opacity:.72;pointer-events:none}#refreshTicketsBtn.refreshing::after{content:''!important}
+      @media(max-width:390px){
+        #dashboardView .savedTicket{padding:8px 8px 7px 10px!important}
+        #dashboardView .savedTitleLine h3,#dashboardView .savedTicket h3{font-size:17px!important}
+        #dashboardView .savedActions button{min-height:38px!important}
+        #dashboardView .dashboardToolbarV55{grid-template-columns:minmax(0,1fr) 72px 94px 56px!important;gap:4px!important}
+        #dashboardView .dashboardToolbarV55 button{padding:7px 2px!important;font-size:7.5px!important;letter-spacing:.015em!important}
+        #dashboardView .dashboardToolbarStatus{font-size:8px!important}
+      }
     `;
     document.head.appendChild(style);
   }
@@ -44,6 +56,8 @@
     const badge=[...card.querySelectorAll('.savedStateBadge:not(.storage)')][0];
     const outcome=String(badge?.textContent||'PENDING').replace(/^TICKET\s+/i,'').trim().toUpperCase();
     card.classList.add('outcome'+(outcome||'PENDING'));
+    const storageBadge=card.querySelector('.savedStateBadge.storage');
+    if(storageBadge)storageBadge.classList.toggle('storageCompleted',String(storageBadge.textContent||'').trim().toUpperCase()==='COMPLETED');
     card.querySelectorAll('.dashboardLeg').forEach(leg=>{
       [...leg.classList].filter(x=>x.startsWith('leg')).forEach(x=>leg.classList.remove(x));
       const status=String(leg.querySelector('.dashboardLegStatus')?.textContent||'PENDING').trim().toUpperCase();
@@ -52,7 +66,7 @@
   }
 
   function apply(){addCss();document.querySelectorAll('#ticketList .savedTicket').forEach(decorateCard)}
-  function wrap(){const original=window.renderTicketDashboard;if(typeof original!=='function'||original.__polishV63Wrapped)return;const wrapped=function(...args){const out=original.apply(this,args);requestAnimationFrame(apply);return out};wrapped.__polishV63Wrapped=true;window.renderTicketDashboard=wrapped}
+  function wrap(){const original=window.renderTicketDashboard;if(typeof original!=='function'||original.__polishV72Wrapped)return;const wrapped=function(...args){const out=original.apply(this,args);requestAnimationFrame(apply);return out};wrapped.__polishV72Wrapped=true;window.renderTicketDashboard=wrapped}
 
   wrap();apply();
   window.addEventListener('load',()=>{wrap();apply()},{once:true});
