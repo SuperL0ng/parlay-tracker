@@ -1,4 +1,4 @@
-/* DASHBOARD REFRESH V64 — refresh legs and ticket-level state together */
+/* DASHBOARD REFRESH V69 — refresh legs and ticket-level state together */
 (() => {
   'use strict';
   const KEY='parlayTracker.savedTickets.v1';
@@ -15,10 +15,12 @@
     const style=document.createElement('style');
     style.id='dashboardRefreshV58Css';
     style.textContent=`
-      #dashboardView .dashboardToolbarV55{grid-template-columns:minmax(0,1fr) auto auto auto!important}
-      #dashboardView .dashboardToolbarStatus{grid-column:2!important;justify-self:end!important;text-align:right!important;white-space:nowrap!important}
-      #refreshTicketsBtn{grid-column:3!important}
-      #ticketSelectModeBtn{grid-column:4!important}
+      #dashboardView .dashboardToolbarV55{grid-template-columns:auto minmax(0,1fr) auto auto!important}
+      #refreshTicketsBtn{grid-column:1!important;grid-row:1!important}
+      #dashboardView .dashboardToolbarStatus{grid-column:2!important;grid-row:1!important;justify-self:start!important;text-align:left!important;white-space:nowrap!important}
+      #toggleAllTicketsBtn{grid-column:3!important;grid-row:1!important}
+      #ticketSelectModeBtn{grid-column:4!important;grid-row:1!important}
+      #deleteSelectedTicketsBtn{grid-column:1/-1!important;grid-row:2!important}
     `;
     document.head.appendChild(style);
   }
@@ -47,7 +49,7 @@
     const status=document.querySelector('.dashboardToolbarStatus');
     const refreshButton=document.getElementById('refreshTicketsBtn');
     const openCards=[...document.querySelectorAll('#ticketList .savedTicket')].filter(card=>{const panel=card.querySelector('.savedTicketDetails');return panel&&!panel.classList.contains('hide')});
-    if(!openCards.length){if(status)status.textContent='Open a ticket to refresh its legs.';return}
+    if(!openCards.length){if(status)status.textContent='Open a ticket to refresh.';return}
     const list=load(),byId=new Map(list.map(record=>[record.id,record]));
     const targets=openCards.map(card=>({card,panel:card.querySelector('.savedTicketDetails'),record:byId.get(card.dataset.ticketId)})).filter(x=>x.record);
     if(!targets.length)return;
