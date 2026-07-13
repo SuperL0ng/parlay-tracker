@@ -1,4 +1,4 @@
-/* DASHBOARD REFRESH V70 — refresh legs and ticket-level state together */
+/* DASHBOARD REFRESH V71 — refresh legs and ticket-level state together */
 (() => {
   'use strict';
   const KEY='parlayTracker.savedTickets.v1';
@@ -15,12 +15,13 @@
     const style=document.createElement('style');
     style.id='dashboardRefreshV58Css';
     style.textContent=`
-      #dashboardView .dashboardToolbarV55{grid-template-columns:minmax(0,1fr) auto auto auto!important}
-      #dashboardView .dashboardToolbarStatus{grid-column:1!important;grid-row:1!important;justify-self:start!important;text-align:left!important;white-space:nowrap!important}
-      #refreshTicketsBtn{grid-column:2!important;grid-row:1!important}
-      #toggleAllTicketsBtn{grid-column:3!important;grid-row:1!important}
-      #ticketSelectModeBtn{grid-column:4!important;grid-row:1!important}
+      #dashboardView .dashboardToolbarV55{grid-template-columns:minmax(0,1fr) 70px 84px 58px!important;gap:6px!important}
+      #dashboardView .dashboardToolbarStatus{grid-column:1!important;grid-row:1!important;justify-self:stretch!important;text-align:left!important;min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
+      #refreshTicketsBtn{grid-column:2!important;grid-row:1!important;width:100%!important}
+      #toggleAllTicketsBtn{grid-column:3!important;grid-row:1!important;width:100%!important}
+      #ticketSelectModeBtn{grid-column:4!important;grid-row:1!important;width:100%!important}
       #deleteSelectedTicketsBtn{grid-column:1/-1!important;grid-row:2!important}
+      @media(max-width:390px){#dashboardView .dashboardToolbarV55{grid-template-columns:minmax(0,1fr) 64px 80px 54px!important;gap:5px!important}}
     `;
     document.head.appendChild(style);
   }
@@ -49,12 +50,12 @@
     const status=document.querySelector('.dashboardToolbarStatus');
     const refreshButton=document.getElementById('refreshTicketsBtn');
     const openCards=[...document.querySelectorAll('#ticketList .savedTicket')].filter(card=>{const panel=card.querySelector('.savedTicketDetails');return panel&&!panel.classList.contains('hide')});
-    if(!openCards.length){if(status)status.textContent='Open a ticket to refresh.';return}
+    if(!openCards.length){if(status)status.textContent='Open ticket first.';return}
     const list=load(),byId=new Map(list.map(record=>[record.id,record]));
     const targets=openCards.map(card=>({card,panel:card.querySelector('.savedTicketDetails'),record:byId.get(card.dataset.ticketId)})).filter(x=>x.record);
     if(!targets.length)return;
     window.__dashboardRefreshRunning=true;
-    if(refreshButton){refreshButton.disabled=true;refreshButton.classList.add('refreshing');refreshButton.textContent='Refreshing'}
+    if(refreshButton){refreshButton.disabled=true;refreshButton.classList.add('refreshing');refreshButton.textContent='Refresh…'}
     if(status)status.textContent='Refreshing…';
     targets.forEach(x=>x.panel.innerHTML='<div class="dashboardDetailsMessage">Refreshing leg status…</div>');
     try{
