@@ -1,44 +1,71 @@
-/* DASHBOARD MORE ACTIONS V69 — compact full-width primary row and collapsible secondary row */
+/* DASHBOARD MORE ACTIONS V70 — full-width View row, compact three-button row, full-width More row */
 (() => {
   'use strict';
 
   let retryTimer=null;
 
   function addCss(){
-    if(document.getElementById('dashboardMoreActionsV69Css'))return;
+    if(document.getElementById('dashboardMoreActionsV70Css'))return;
     const style=document.createElement('style');
-    style.id='dashboardMoreActionsV69Css';
+    style.id='dashboardMoreActionsV70Css';
     style.textContent=`
       #ticketList .savedActions.moreActionsEnabled{
         display:grid!important;
         width:100%!important;
-        grid-template-columns:repeat(4,minmax(0,1fr))!important;
+        grid-template-columns:repeat(12,minmax(0,1fr))!important;
         column-gap:6px!important;
-        row-gap:0!important;
+        row-gap:6px!important;
       }
       #ticketList .savedActions.moreActionsEnabled>button{
-        grid-column:auto!important;
         width:100%!important;
         min-width:0!important;
-        min-height:34px!important;
+        margin:0!important;
+      }
+      #ticketList .savedActions.moreActionsEnabled>.savedActionView{
+        grid-column:1/13!important;
+        grid-row:1!important;
+        min-height:40px!important;
+      }
+      #ticketList .savedActions.moreActionsEnabled>.savedActionCopy{
+        grid-column:1/5!important;
+        grid-row:2!important;
+      }
+      #ticketList .savedActions.moreActionsEnabled>.savedActionShare{
+        grid-column:5/9!important;
+        grid-row:2!important;
+      }
+      #ticketList .savedActions.moreActionsEnabled>.savedActionsMoreToggle{
+        grid-column:9/13!important;
+        grid-row:2!important;
+      }
+      #ticketList .savedActions.moreActionsEnabled>.savedActionCopy,
+      #ticketList .savedActions.moreActionsEnabled>.savedActionShare,
+      #ticketList .savedActions.moreActionsEnabled>.savedActionsMoreToggle{
+        min-height:33px!important;
         padding:5px 4px!important;
         font-size:9px!important;
         line-height:1!important;
-        letter-spacing:.045em!important;
+        letter-spacing:.04em!important;
         white-space:nowrap!important;
       }
-      #ticketList .savedActions.moreActionsEnabled>.savedActionPrimary,
-      #ticketList .savedActions.moreActionsEnabled>.savedActionsMoreToggle{grid-row:1!important}
       #ticketList .savedActions.moreActionsEnabled>.savedActionSecondary{
         display:none!important;
-        grid-row:2!important;
+        grid-row:3!important;
+        min-width:0!important;
+        min-height:39px!important;
+        padding:5px 2px!important;
+        font-size:8px!important;
+        line-height:1.08!important;
+        letter-spacing:.025em!important;
+        white-space:normal!important;
+        overflow-wrap:normal!important;
+        word-break:normal!important;
       }
-      #ticketList .savedActions.moreActionsEnabled.moreOpen{
-        row-gap:6px!important;
-      }
-      #ticketList .savedActions.moreActionsEnabled.moreOpen>.savedActionSecondary{
-        display:flex!important;
-      }
+      #ticketList .savedActions.moreActionsEnabled>.savedActionSecondary1{grid-column:1/4!important}
+      #ticketList .savedActions.moreActionsEnabled>.savedActionSecondary2{grid-column:4/7!important}
+      #ticketList .savedActions.moreActionsEnabled>.savedActionSecondary3{grid-column:7/10!important}
+      #ticketList .savedActions.moreActionsEnabled>.savedActionSecondary4{grid-column:10/13!important}
+      #ticketList .savedActions.moreActionsEnabled.moreOpen>.savedActionSecondary{display:flex!important}
       #ticketList .savedActionsMoreToggle{
         color:#26303B!important;
         background:linear-gradient(180deg,#E9EDF2,#C5CED9 55%,#8C98A8)!important;
@@ -53,11 +80,17 @@
       }
       #ticketList .savedActionsMoreToggle[aria-expanded="true"] .moreChevron{transform:rotate(180deg)}
       @media(min-width:600px){
-        #ticketList .savedActions.moreActionsEnabled>button{font-size:10px!important}
+        #ticketList .savedActions.moreActionsEnabled>.savedActionCopy,
+        #ticketList .savedActions.moreActionsEnabled>.savedActionShare,
+        #ticketList .savedActions.moreActionsEnabled>.savedActionsMoreToggle{font-size:10px!important}
+        #ticketList .savedActions.moreActionsEnabled>.savedActionSecondary{font-size:9px!important}
       }
       @media(max-width:390px){
-        #ticketList .savedActions.moreActionsEnabled{column-gap:5px!important}
-        #ticketList .savedActions.moreActionsEnabled>button{min-height:32px!important;padding:4px 3px!important;font-size:8px!important}
+        #ticketList .savedActions.moreActionsEnabled{column-gap:5px!important;row-gap:5px!important}
+        #ticketList .savedActions.moreActionsEnabled>.savedActionCopy,
+        #ticketList .savedActions.moreActionsEnabled>.savedActionShare,
+        #ticketList .savedActions.moreActionsEnabled>.savedActionsMoreToggle{min-height:32px!important;padding:4px 3px!important;font-size:8px!important}
+        #ticketList .savedActions.moreActionsEnabled>.savedActionSecondary{min-height:38px!important;font-size:7.5px!important;padding:4px 1px!important}
       }
     `;
     document.head.appendChild(style);
@@ -75,6 +108,15 @@
     toggle.innerHTML=`${open?'Less':'More'} <span class="moreChevron">⌄</span>`;
   }
 
+  function setClass(button,...classes){
+    button.classList.remove(
+      'savedActionView','savedActionCopy','savedActionShare','savedActionPrimary',
+      'savedActionSecondary','savedActionSecondary1','savedActionSecondary2',
+      'savedActionSecondary3','savedActionSecondary4'
+    );
+    button.classList.add(...classes);
+  }
+
   function enhance(card){
     const actions=card.querySelector('.savedActions');
     if(!actions)return false;
@@ -89,29 +131,29 @@
     const del=buttons.find(button=>label(button)==='DELETE');
     if(!view||!copy||!share||!duplicate||!complete||!edit||!del)return false;
 
+    view.textContent='View';
     copy.textContent='Copy Code';
+    share.textContent='Share';
+    duplicate.textContent='Duplicate';
+    complete.textContent=label(complete)==='MARK ACTIVE'?'Mark Active':'Complete';
+    edit.textContent='Edit';
+    del.textContent='Delete';
 
     let toggle=actions.querySelector(':scope > .savedActionsMoreToggle');
-    if(actions.classList.contains('moreActionsEnabled')&&toggle){
-      setToggleState(actions,toggle);
-      return true;
-    }
-
-    const wasOpen=actions.classList.contains('moreOpen');
     if(!toggle){
       toggle=document.createElement('button');
       toggle.type='button';
       toggle.className='ghost savedActionsMoreToggle';
     }
 
-    [view,copy,share].forEach(button=>{
-      button.classList.remove('savedActionSecondary');
-      button.classList.add('savedActionPrimary');
-    });
-    [duplicate,complete,edit,del].forEach(button=>{
-      button.classList.remove('savedActionPrimary');
-      button.classList.add('savedActionSecondary');
-    });
+    const wasOpen=actions.classList.contains('moreOpen');
+    setClass(view,'savedActionView','savedActionPrimary');
+    setClass(copy,'savedActionCopy','savedActionPrimary');
+    setClass(share,'savedActionShare','savedActionPrimary');
+    setClass(duplicate,'savedActionSecondary','savedActionSecondary1');
+    setClass(complete,'savedActionSecondary','savedActionSecondary2');
+    setClass(edit,'savedActionSecondary','savedActionSecondary3');
+    setClass(del,'savedActionSecondary','savedActionSecondary4');
 
     actions.replaceChildren(view,copy,share,toggle,duplicate,complete,edit,del);
     actions.classList.add('moreActionsEnabled');
@@ -147,13 +189,13 @@
 
   function wrap(){
     const original=window.renderTicketDashboard;
-    if(typeof original!=='function'||original.__moreActionsV69Wrapped)return;
+    if(typeof original!=='function'||original.__moreActionsV70Wrapped)return;
     const wrapped=function(...args){
       const out=original.apply(this,args);
       requestAnimationFrame(retry);
       return out;
     };
-    wrapped.__moreActionsV69Wrapped=true;
+    wrapped.__moreActionsV70Wrapped=true;
     window.renderTicketDashboard=wrapped;
   }
 
