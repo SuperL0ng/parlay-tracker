@@ -1,4 +1,4 @@
-/* DASHBOARD MORE ACTIONS V73 — compact 75/25 View/More row with two-row expanded actions */
+/* DASHBOARD MORE ACTIONS V74 — shorter 75/25 View/More row with larger expanded-action labels */
 (() => {
   'use strict';
 
@@ -7,9 +7,9 @@
   window.__dashboardMoreOpenIds=openTicketIds;
 
   function addCss(){
-    if(document.getElementById('dashboardMoreActionsV73Css'))return;
+    if(document.getElementById('dashboardMoreActionsV74Css'))return;
     const style=document.createElement('style');
-    style.id='dashboardMoreActionsV73Css';
+    style.id='dashboardMoreActionsV74Css';
     style.textContent=`
       #ticketList .savedActions.moreActionsEnabled{
         display:grid!important;
@@ -26,13 +26,16 @@
       #ticketList .savedActions.moreActionsEnabled>.savedActionView{
         grid-column:1/10!important;
         grid-row:1!important;
-        min-height:40px!important;
+        height:34px!important;
+        min-height:34px!important;
+        padding:4px!important;
       }
       #ticketList .savedActions.moreActionsEnabled>.savedActionsMoreToggle{
         grid-column:10/13!important;
         grid-row:1!important;
-        min-height:40px!important;
-        padding:5px 4px!important;
+        height:34px!important;
+        min-height:34px!important;
+        padding:3px 4px!important;
         font-size:9px!important;
         line-height:1!important;
         letter-spacing:.04em!important;
@@ -43,9 +46,9 @@
         min-width:0!important;
         min-height:38px!important;
         padding:5px 3px!important;
-        font-size:8px!important;
+        font-size:9.5px!important;
         line-height:1.08!important;
-        letter-spacing:.025em!important;
+        letter-spacing:.015em!important;
         white-space:normal!important;
         overflow-wrap:normal!important;
         word-break:normal!important;
@@ -74,12 +77,12 @@
       #ticketList .savedActionsMoreToggle[aria-expanded="true"] .moreChevron{transform:rotate(180deg)}
       @media(min-width:600px){
         #ticketList .savedActions.moreActionsEnabled>.savedActionsMoreToggle{font-size:10px!important}
-        #ticketList .savedActions.moreActionsEnabled>.savedActionExpanded{font-size:9px!important}
+        #ticketList .savedActions.moreActionsEnabled>.savedActionExpanded{font-size:10.5px!important}
       }
       @media(max-width:390px){
         #ticketList .savedActions.moreActionsEnabled{column-gap:5px!important;row-gap:5px!important}
-        #ticketList .savedActions.moreActionsEnabled>.savedActionsMoreToggle{font-size:8px!important;padding:4px 3px!important}
-        #ticketList .savedActions.moreActionsEnabled>.savedActionExpanded{min-height:37px!important;font-size:7.5px!important;padding:4px 1px!important}
+        #ticketList .savedActions.moreActionsEnabled>.savedActionsMoreToggle{font-size:8px!important;padding:3px!important}
+        #ticketList .savedActions.moreActionsEnabled>.savedActionExpanded{min-height:37px!important;font-size:8.5px!important;padding:4px 1px!important}
       }
     `;
     document.head.appendChild(style);
@@ -183,13 +186,13 @@
 
   function wrap(){
     const original=window.renderTicketDashboard;
-    if(typeof original!=='function'||original.__moreActionsV73Wrapped)return;
+    if(typeof original!=='function'||original.__moreActionsV74Wrapped)return;
     const wrapped=function(...args){
       const out=original.apply(this,args);
       requestAnimationFrame(retry);
       return out;
     };
-    wrapped.__moreActionsV73Wrapped=true;
+    wrapped.__moreActionsV74Wrapped=true;
     window.renderTicketDashboard=wrapped;
   }
 
