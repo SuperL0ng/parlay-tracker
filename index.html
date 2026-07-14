@@ -4,7 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Parlay Tracker</title>
-<link rel="icon" type="image/png" sizes="32x32" href="./favicon-silver-v2-32.png">
+<link rel="icon" href="./favicon.ico" sizes="any">
+<link rel="shortcut icon" href="./favicon.ico">
 <link rel="apple-touch-icon" sizes="180x180" href="./favicon-silver-v2-180.png">
 <link rel="manifest" href="./manifest-v2.json">
 <meta name="theme-color" content="#d7dde6">
@@ -19,7 +20,7 @@
     const response=await fetch(base,{cache:'no-store'});
     if(!response.ok)throw new Error('Base app HTTP '+response.status);
     let html=await response.text();
-    const headAssets='<link rel="icon" type="image/png" sizes="32x32" href="./favicon-silver-v2-32.png"><link rel="apple-touch-icon" sizes="180x180" href="./favicon-silver-v2-180.png"><link rel="manifest" href="./manifest-v2.json"><meta name="theme-color" content="#d7dde6">';
+    const headAssets='<link rel="icon" href="./favicon.ico" sizes="any"><link rel="shortcut icon" href="./favicon.ico"><link rel="apple-touch-icon" sizes="180x180" href="./favicon-silver-v2-180.png"><link rel="manifest" href="./manifest-v2.json"><meta name="theme-color" content="#d7dde6">';
     html=html.replace('</head>',headAssets+'</head>');
     const settlementLoader='<script>if(location.hash){const s=document.createElement("script");s.src="./actual-settlement-time.js?v=82";document.head.appendChild(s)}<\/script>';
     html=html.replace('</body>','<script src="./tracker-core-v51.js?v=82"><\/script><script src="./tracker-sources-v51.js?v=82"><\/script><script src="./tracker-evaluator-v51.js?v=82"><\/script><script src="./tracker-view-v51.js?v=82"><\/script><script src="./view-fixes.js?v=82"><\/script><script src="./navigation-links-v24.js?v=82"><\/script><script src="./manual-fields.js?v=82"><\/script><script src="./settlement-status.js?v=82"><\/script>'+settlementLoader+'<script src="./code-panel-default.js?v=82"><\/script><script src="./ticket-sharing.js?v=82"><\/script><script src="./optional-sportsbook.js?v=82"><\/script><script src="./league-code-output.js?v=82"><\/script><script src="./reference-slip.js?v=82"><\/script><script src="./builder-behavior-fixes.js?v=82"><\/script><script src="./game-display-fixes.js?v=82"><\/script><script src="./label-lifecycle-v52.js?v=82"><\/script><script src="./ticket-dashboard-details-v54.js?v=82"><\/script><script src="./dashboard-layout-v56.js?v=82"><\/script><script src="./dashboard-refresh-v58.js?v=82"><\/script><script src="./dashboard-polish-v63.js?v=82"><\/script><script src="./dashboard-more-actions-v64.js?v=82"><\/script></body>');
