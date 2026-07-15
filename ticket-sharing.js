@@ -1,4 +1,4 @@
-/* TICKET_SHARING_V42 */
+/* TICKET_SHARING_V43 */
 (() => {
   'use strict';
 
@@ -245,6 +245,7 @@
   }
 
   function decorateDashboard(){
+    let shareAdded=false;
     const actions=document.querySelector('.dashboardActions');
     if(actions&&!document.getElementById('importTicketCodeBtn')){
       const b=document.createElement('button');b.id='importTicketCodeBtn';b.type='button';b.className='ghost dashboardImportBtn';b.textContent='Import Code';b.addEventListener('click',()=>openModal());actions.insertBefore(b,actions.firstChild);
@@ -255,7 +256,9 @@
       const b=document.createElement('button');b.type='button';b.className='ghost shareTicketBtn';b.textContent='Share';b.addEventListener('click',()=>shareTicket(record.id));
       const copy=[...actionsBox.querySelectorAll('button')].find(x=>/copy code/i.test(x.textContent));
       if(copy)copy.insertAdjacentElement('afterend',b);else actionsBox.appendChild(b);
+      shareAdded=true;
     });
+    if(shareAdded)document.dispatchEvent(new Event('parlay:dashboard-refreshed'));
   }
 
   function installDashboardHook(){

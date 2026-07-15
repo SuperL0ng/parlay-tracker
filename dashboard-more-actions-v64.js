@@ -1,9 +1,8 @@
-/* DASHBOARD MORE ACTIONS V75 — resilient post-import enhancement */
+/* DASHBOARD MORE ACTIONS V76 — idempotent event-driven enhancement */
 (() => {
   'use strict';
 
   let retryTimer=null;
-  let ticketListObserver=null;
   const openTicketIds=window.__dashboardMoreOpenIds instanceof Set?window.__dashboardMoreOpenIds:new Set();
   window.__dashboardMoreOpenIds=openTicketIds;
 
@@ -174,16 +173,8 @@
     return [...document.querySelectorAll('#ticketList .savedTicket')].map(enhance);
   }
 
-  function observeTicketList(){
-    const list=document.getElementById('ticketList');
-    if(!list||ticketListObserver)return;
-    ticketListObserver=new MutationObserver(()=>retry());
-    ticketListObserver.observe(list,{childList:true,subtree:true});
-  }
-
   function retry(){
     clearTimeout(retryTimer);
-    observeTicketList();
     let attempts=0;
     const run=()=>{
       const results=apply();
@@ -207,7 +198,7 @@
   }
 
   wrap();retry();
-  window.addEventListener('load',()=>{wrap();observeTicketList();retry()},{once:true});
+  window.addEventListener('load',()=>{wrap();retry()},{once:true});
   document.addEventListener('click',event=>{
     if(event.target.closest?.('#ticketsTab')){
       openTicketIds.clear();
