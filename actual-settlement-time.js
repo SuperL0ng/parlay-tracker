@@ -1,4 +1,4 @@
-/* ACTUAL_SETTLEMENT_TIME_V43 — calculate and repaint settlement timestamps from My Tickets */
+/* ACTUAL_SETTLEMENT_TIME_V44 — calculate dashboard timestamps without render feedback loops */
 (() => {
   'use strict';
 
@@ -365,6 +365,6 @@
   window.addEventListener('load',()=>schedule(0),{once:true});
   window.addEventListener('hashchange',()=>schedule(0));
   document.addEventListener('parlay:settlement-status-updated',()=>schedule(0));
-  document.addEventListener('parlay:dashboard-refreshed',()=>schedule(0));
+  document.addEventListener('parlay:dashboard-refreshed',event=>{if(event.detail?.source==='dashboard-refresh')schedule(0)});
   if(document.readyState!=='loading')schedule(0);
 })();
