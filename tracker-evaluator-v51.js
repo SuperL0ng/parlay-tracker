@@ -1,8 +1,9 @@
-/* PARLAY TRACKER EVALUATOR V53 — baseball parity with canonical Scriptable logic */
+/* PARLAY TRACKER EVALUATOR V54 — Scriptable parity for MLB and basketball player markets */
 (() => {
   'use strict';
   const C=window.ParlayTrackerCore,S=window.ParlayTrackerSources;
   const MLB_PLAYER_TYPES=new Set(['pitcher_outs_under','pitcher_ks','pitcher_ks_under','player_hits','player_total_bases','player_runs','player_hr','player_rbi','player_walks','player_stolen_bases','player_hwsb','player_hrrbi']);
+  const BASKETBALL_PLAYER_TYPES=new Set(['player_points','player_rebounds','player_assists','player_threes','player_double_double','player_triple_double','player_points_rebounds','player_points_assists','player_rebounds_assists','player_points_rebounds_assists','player_pra','player_pr','player_pa','player_ra','player_blocks']);
   function valClass(state,trend=''){return state==='win'?'valueWin':state==='loss'?'valueLoss':state==='push'?'valuePush':state==='suspended'||state==='unavailable'?'valueSuspended':trend||'valuePending'}
   function milestone(n,target,game){if(n>=target)return C.statusObj('win',C.fmtRecord(n,target),'valueWin');if(C.isSuspended(game))return C.statusObj('suspended',C.fmtRecord(n,target),'valueSuspended');if(C.isFinal(game))return C.statusObj('loss',C.fmtRecord(n,target),'valueLoss');return C.statusObj(C.isLive(game)?'live':'pending',C.isLive(game)?C.fmtRecord(n,target):'',C.isLive(game)?'valuePending':'')}
   function underResult(n,target,game){if(n>target)return C.statusObj('loss',C.fmtRecord(n,target),'valueLoss');if(C.isFinal(game))return C.statusObj('win',C.fmtRecord(n,target),'valueWin');return C.statusObj(C.isLive(game)?'live':'pending',C.isLive(game)?C.fmtRecord(n,target):'',C.isLive(game)?'valuePending':'')}
@@ -13,7 +14,7 @@
     if(!game)return{...leg,__live:C.statusObj('pending','')};
     const final=C.isFinal(game),live=C.isLive(game),started=C.hasStarted(game),suspended=C.isSuspended(game),[away,home]=key.split('@'),target=Number(leg.target||0);
     let summary=null,feed=null;
-    if(MLB_PLAYER_TYPES.has(leg.type)){const data=await S.loadGameData(ticket,leg,game);summary=data.summary;feed=data.mlbFeed}
+    if(MLB_PLAYER_TYPES.has(leg.type)||BASKETBALL_PLAYER_TYPES.has(leg.type)){const data=await S.loadGameData(ticket,leg,game);summary=data.summary;feed=data.mlbFeed}
     let st;
     switch(leg.type){
       case'ml':{const value=C.gameScoreValue(game,away,home),margin=C.marginForPick(game,key,leg.team,0),trend=C.trendClass(game,margin);st=suspended?C.statusObj('suspended',value,'valueSuspended'):final?C.statusObj(margin>0?'win':'loss',value,valClass(margin>0?'win':'loss')):C.statusObj(live?'live':'pending',live?value:'',live?trend:'');break}
@@ -38,6 +39,17 @@
       case'player_stolen_bases':{const n=started?(S.baseballStat('sb',summary,feed,leg.team,leg.player)??0):0;st=milestone(n,target,game);break}
       case'player_hwsb':{const n=started?((S.baseballStat('hits',summary,feed,leg.team,leg.player)||0)+(S.baseballStat('walks',summary,feed,leg.team,leg.player)||0)+(S.baseballStat('sb',summary,feed,leg.team,leg.player)||0)):0;st=milestone(n,target,game);break}
       case'player_hrrbi':{const n=started?((S.baseballStat('hits',summary,feed,leg.team,leg.player)||0)+(S.baseballStat('runs',summary,feed,leg.team,leg.player)||0)+(S.baseballStat('rbi',summary,feed,leg.team,leg.player)||0)):0;st=milestone(n,target,game);break}
+      case'player_points':{const n=started?(S.getPoints(summary,leg.team,leg.player)??0):0;st=milestone(n,target,game);break}
+      case'player_rebounds':{const n=started?(S.getRebounds(summary,leg.team,leg.player)??0):0;st=milestone(n,target,game);break}
+      case'player_assists':{const n=started?(S.getAssists(summary,leg.team,leg.player)??0):0;st=milestone(n,target,game);break}
+      case'player_threes':{const n=started?(S.getThrees(summary,leg.team,leg.player)??0):0;st=milestone(n,target,game);break}
+      case'player_blocks':{const n=started?(S.getBlocks(summary,leg.team,leg.player)??0):0;st=milestone(n,target,game);break}
+      case'player_points_rebounds':case'player_pr':{const n=started?(S.getPoints(summary,leg.team,leg.player)||0)+(S.getRebounds(summary,leg.team,leg.player)||0):0;st=milestone(n,target,game);break}
+      case'player_points_assists':case'player_pa':{const n=started?(S.getPoints(summary,leg.team,leg.player)||0)+(S.getAssists(summary,leg.team,leg.player)||0):0;st=milestone(n,target,game);break}
+      case'player_rebounds_assists':case'player_ra':{const n=started?(S.getRebounds(summary,leg.team,leg.player)||0)+(S.getAssists(summary,leg.team,leg.player)||0):0;st=milestone(n,target,game);break}
+      case'player_points_rebounds_assists':case'player_pra':{const n=started?(S.getPoints(summary,leg.team,leg.player)||0)+(S.getRebounds(summary,leg.team,leg.player)||0)+(S.getAssists(summary,leg.team,leg.player)||0):0;st=milestone(n,target,game);break}
+      case'player_double_double':{const n=started?S.getDoubleCount(summary,leg.team,leg.player):0;st=milestone(n,2,game);break}
+      case'player_triple_double':{const n=started?S.getDoubleCount(summary,leg.team,leg.player):0;st=milestone(n,3,game);break}
       default:st=C.statusObj('unavailable','UNSUPPORTED','valueSuspended');
     }
     return{...leg,__game:game,__live:st};
