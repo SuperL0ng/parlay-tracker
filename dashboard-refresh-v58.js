@@ -1,4 +1,4 @@
-/* DASHBOARD REFRESH V71 — refresh legs and ticket-level state together */
+/* DASHBOARD REFRESH V72 — refresh every ticket without changing leg expansion */
 (() => {
   'use strict';
   const KEY='parlayTracker.savedTickets.v1';
@@ -49,15 +49,15 @@
     if(window.__dashboardRefreshRunning)return;
     const status=document.querySelector('.dashboardToolbarStatus');
     const refreshButton=document.getElementById('refreshTicketsBtn');
-    const openCards=[...document.querySelectorAll('#ticketList .savedTicket')].filter(card=>{const panel=card.querySelector('.savedTicketDetails');return panel&&!panel.classList.contains('hide')});
-    if(!openCards.length){if(status)status.textContent='Open ticket first.';return}
+    const cards=[...document.querySelectorAll('#ticketList .savedTicket')];
+    if(!cards.length){if(status)status.textContent='No tickets to refresh.';return}
     const list=load(),byId=new Map(list.map(record=>[record.id,record]));
-    const targets=openCards.map(card=>({card,panel:card.querySelector('.savedTicketDetails'),record:byId.get(card.dataset.ticketId)})).filter(x=>x.record);
+    const targets=cards.map(card=>({card,panel:card.querySelector('.savedTicketDetails'),record:byId.get(card.dataset.ticketId)})).filter(x=>x.record);
     if(!targets.length)return;
     window.__dashboardRefreshRunning=true;
     if(refreshButton){refreshButton.disabled=true;refreshButton.classList.add('refreshing');refreshButton.textContent='Refresh…'}
     if(status)status.textContent='Refreshing…';
-    targets.forEach(x=>x.panel.innerHTML='<div class="dashboardDetailsMessage">Refreshing leg status…</div>');
+    targets.forEach(x=>{if(x.panel&&!x.panel.classList.contains('hide'))x.panel.innerHTML='<div class="dashboardDetailsMessage">Refreshing leg status…</div>'});
     try{
       const S=window.ParlayTrackerSources,E=window.ParlayTrackerEvaluator;
       if(!S||!E)throw new Error('Tracker engine unavailable');
@@ -69,13 +69,13 @@
         const target=targets[index],record=target.record,outcome=outcomeFor(evaluatedRecord);
         record.liveOutcome=outcome;
         if(SETTLED.has(outcome)&&record.status!=='completed'&&!record.manualActiveOverride){record.status='completed';record.autoCompleted=true;record.updatedAt=now}
-        target.panel.innerHTML=detailsHtml(evaluatedRecord);
+        if(target.panel)target.panel.innerHTML=detailsHtml(evaluatedRecord);
         updateCardState(target.card,record);
       });
       store(list);
       if(status)status.textContent=`Updated ${new Date().toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})}`;
     }catch(error){
-      targets.forEach(x=>x.panel.innerHTML=`<div class="dashboardDetailsMessage">Unable to refresh leg status: ${esc(error?.message||error)}</div>`);
+      targets.forEach(x=>{if(x.panel&&!x.panel.classList.contains('hide'))x.panel.innerHTML=`<div class="dashboardDetailsMessage">Unable to refresh leg status: ${esc(error?.message||error)}</div>`});
       if(status)status.textContent='Refresh failed';
     }finally{
       window.__dashboardRefreshRunning=false;
