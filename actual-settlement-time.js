@@ -1,10 +1,11 @@
-/* ACTUAL_SETTLEMENT_TIME_V41 — event-ledger timestamps with one scheduled pass */
+/* ACTUAL_SETTLEMENT_TIME_V42 — MLB and basketball event-ledger timestamps */
 (() => {
   'use strict';
 
   const KEY='parlayTracker.savedTickets.v1';
   const SCHEDULE='https://statsapi.mlb.com/api/v1/schedule';
   const FEED='https://statsapi.mlb.com/api/v1.1/game';
+  const ESPN='https://site.api.espn.com/apis/site/v2/sports';
   const cache=new Map();
   let running=false,runTimer=null;
   window.__actualSettlementTimeLoaded=true;
@@ -15,6 +16,8 @@
   function store(x){localStorage.setItem(KEY,JSON.stringify(x))}
   function dashDate(v){v=clean(v).replace(/\D/g,'').slice(0,8);return v.length===8?`${v.slice(0,4)}-${v.slice(4,6)}-${v.slice(6)}`:v}
   function parts(game){const [away='',home='']=clean(game).split('@');return{away:away.toUpperCase(),home:home.toUpperCase()}}
+  function effectiveLeague(ticket,leg={}){return clean(leg.league||ticket.league||'MLB').toUpperCase()}
+  function supportedLeague(league){return ['MLB','NBA','WNBA'].includes(clean(league).toUpperCase())}
   function teamCode(x){return clean(x?.team?.abbreviation||x?.abbreviation).toUpperCase()}
   function validTime(v){if(!v)return'';const d=new Date(v);return Number.isNaN(d.getTime())?'':d.toISOString()}
   function playTime(play){return validTime(play?.about?.endTime)||validTime(play?.about?.startTime)}
@@ -36,6 +39,70 @@
     })();
     cache.set(key,promise);
     try{return await promise}catch(e){cache.delete(key);throw e}
+  }
+
+  function basketballPath(league){return clean(league).toUpperCase()==='NBA'?'basketball/nba':'basketball/wnba'}
+  function espnTeamMatches(team,code){const C=window.ParlayTrackerCore;return C?.teamMatches?C.teamMatches(team||{},code):teamCode(team)===clean(code).toUpperCase()}
+  async function getBasketballSummary(date,game,league){
+    const key=`${league}|${date}|${game}`;
+    if(cache.has(key))return cache.get(key);
+    const promise=(async()=>{
+      const p=parts(game),path=basketballPath(league);
+      const board=await fetch(`${ESPN}/${path}/scoreboard?dates=${encodeURIComponent(clean(date).replace(/\D/g,''))}&limit=100`,{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error(`Scoreboard ${r.status}`);return r.json()});
+      const event=(board.events||[]).find(e=>{const competitors=e?.competitions?.[0]?.competitors||[],away=competitors.find(c=>c.homeAway==='away'),home=competitors.find(c=>c.homeAway==='home');return espnTeamMatches(away?.team,p.away)&&espnTeamMatches(home?.team,p.home)});
+      if(!event?.id)throw new Error('Basketball game not found');
+      return fetch(`${ESPN}/${path}/summary?event=${encodeURIComponent(event.id)}`,{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error(`Summary ${r.status}`);return r.json()});
+    })();
+    cache.set(key,promise);
+    try{return await promise}catch(e){cache.delete(key);throw e}
+  }
+
+  function basketballPlays(summary){return summary?.plays||[]}
+  function basketballPlayTime(play){return validTime(play?.wallclock)}
+  function basketballFinalTime(summary){const completed=summary?.header?.competitions?.[0]?.status?.type?.completed;if(!completed)return'';const list=basketballPlays(summary);for(let i=list.length-1;i>=0;i--){const time=basketballPlayTime(list[i]);if(time)return time}return''}
+  function basketballSides(summary){const competitors=summary?.header?.competitions?.[0]?.competitors||[];return{away:competitors.find(c=>c.homeAway==='away')?.team||{},home:competitors.find(c=>c.homeAway==='home')?.team||{}}}
+  function basketballTeamScore(play,summary,team){return espnTeamMatches(basketballSides(summary).away,team)?Number(play?.awayScore):Number(play?.homeScore)}
+  function basketballOpponentScore(play,summary,team){return espnTeamMatches(basketballSides(summary).away,team)?Number(play?.homeScore):Number(play?.awayScore)}
+  function basketballPlayerLedger(summary,name){
+    const wanted=norm(name),rows=[];let points=0,rebounds=0,assists=0,threes=0,blocks=0;
+    for(const play of basketballPlays(summary)){
+      const text=clean(play?.text),normalized=norm(text),primary=Boolean(wanted&&normalized.startsWith(wanted));
+      if(primary&&play?.scoringPlay){points+=Number(play?.scoreValue||0);if(Number(play?.scoreValue)===3)threes++}
+      if(primary&&/\brebound\b/i.test(text))rebounds++;
+      if(wanted&&normalized.includes(wanted+'assists'))assists++;
+      if(wanted&&normalized.includes(wanted+'blocks'))blocks++;
+      const doubleCount=[points,rebounds,assists].filter(value=>value>=10).length;
+      rows.push({time:basketballPlayTime(play),points,rebounds,assists,threes,blocks,pr:points+rebounds,pa:points+assists,ra:rebounds+assists,pra:points+rebounds+assists,doubleCount});
+    }
+    return rows;
+  }
+  function basketballThresholdTime(summary,leg,over){
+    const target=Number(leg.target),teamTotal=clean(leg.type).startsWith('team_total');
+    for(const play of basketballPlays(summary)){
+      const away=Number(play?.awayScore),home=Number(play?.homeScore);if(!Number.isFinite(away)||!Number.isFinite(home))continue;
+      const current=teamTotal?basketballTeamScore(play,summary,leg.team):away+home;
+      if(over?current>target:current>=target)return basketballPlayTime(play);
+    }
+    return'';
+  }
+  function settleBasketballLeg(leg,summary){
+    const type=clean(leg.type),target=Number(leg.target),end=basketballFinalTime(summary);
+    if(type==='void')return{status:'VOID',settledAt:end,reason:'Void finalized'};
+    if(type==='manual')return{status:'PENDING',settledAt:'',reason:'Manual'};
+    const playerKeys={player_points:'points',player_rebounds:'rebounds',player_assists:'assists',player_threes:'threes',player_blocks:'blocks',player_points_rebounds:'pr',player_pr:'pr',player_points_assists:'pa',player_pa:'pa',player_rebounds_assists:'ra',player_ra:'ra',player_points_rebounds_assists:'pra',player_pra:'pra',player_double_double:'doubleCount',player_triple_double:'doubleCount'};
+    if(playerKeys[type]){
+      const needed=type==='player_double_double'?2:type==='player_triple_double'?3:target,time=firstAt(basketballPlayerLedger(summary,leg.player),playerKeys[type],needed);
+      if(time)return{status:'WIN',settledAt:time,reason:`${playerKeys[type]} target reached`};
+      if(end)return{status:'LOSS',settledAt:end,reason:'Game final below target'};
+      return{status:'LIVE',settledAt:'',reason:''};
+    }
+    if(['team_total_over','total_over'].includes(type)){const time=basketballThresholdTime(summary,leg,true);if(time)return{status:'WIN',settledAt:time,reason:'Over threshold crossed'};if(end)return{status:'LOSS',settledAt:end,reason:'Game final below over'};return{status:'LIVE',settledAt:'',reason:''}}
+    if(['team_total_under','total_under'].includes(type)){const loss=basketballThresholdTime(summary,leg,false);if(loss)return{status:'LOSS',settledAt:loss,reason:'Under threshold crossed'};if(end)return{status:'WIN',settledAt:end,reason:'Game final under target'};return{status:'LIVE',settledAt:'',reason:''}}
+    if(['ml','spread'].includes(type)){
+      if(!end)return{status:'LIVE',settledAt:'',reason:''};const last=basketballPlays(summary).at(-1),mine=basketballTeamScore(last,summary,leg.team),opp=basketballOpponentScore(last,summary,leg.team),adjusted=type==='spread'?mine+target:mine;
+      return{status:adjusted>opp?'WIN':adjusted<opp?'LOSS':'VOID',settledAt:end,reason:'Game final'};
+    }
+    return{status:end?'UNAVAILABLE':'LIVE',settledAt:'',reason:'Unsupported basketball settlement mapping'};
   }
 
   function findPlayer(feed,name){
@@ -239,9 +306,12 @@
   async function evaluateRecordTimes(record){
     const ticket=record.ticket||{},results=[];
     for(let i=0;i<(ticket.legs||[]).length;i++){
-      const leg=ticket.legs[i],game=leg.game||ticket.game,date=leg.date||ticket.date,league=leg.league||ticket.league;
-      if((league&&league!=='MLB')||!game||!date){results.push({index:i,status:'UNAVAILABLE',settledAt:'',reason:'No MLB feed'});continue}
-      try{const feed=await getFeed(date,game);results.push({index:i,...settleLeg(leg,feed)})}
+      const leg=ticket.legs[i],game=leg.game||ticket.game,date=leg.date||ticket.date,league=effectiveLeague(ticket,leg);
+      if(!supportedLeague(league)||!game||!date){results.push({index:i,status:'UNAVAILABLE',settledAt:'',reason:'No supported event feed'});continue}
+      try{
+        if(clean(league).toUpperCase()==='MLB'){const feed=await getFeed(date,game);results.push({index:i,ledger:'mlb',...settleLeg(leg,feed)})}
+        else{const summary=await getBasketballSummary(date,game,league);results.push({index:i,ledger:'basketball',...settleBasketballLeg(leg,summary)})}
+      }
       catch{results.push({index:i,status:'UNAVAILABLE',settledAt:'',reason:'Feed unavailable'})}
     }
     const outcome=clean(record.liveOutcome).toUpperCase();
@@ -266,12 +336,14 @@
       const list=load();let changed=false;
       for(const record of list){
         if(!['WON','LOST','PUSH'].includes(clean(record.liveOutcome).toUpperCase()))continue;
+        const leagues=[effectiveLeague(record.ticket||{})].concat((record.ticket?.legs||[]).map(leg=>effectiveLeague(record.ticket||{},leg)));
+        if(!leagues.some(supportedLeague))continue;
         const evaluated=await evaluateRecordTimes(record),settlement=evaluated.ticketSettlement;
         const compact=evaluated.results.map(r=>({index:r.index,status:r.status,settledAt:r.settledAt||null,settlementReason:r.reason||''}));
         if(JSON.stringify(record.legSettlements)!==JSON.stringify(compact)){record.legSettlements=compact;changed=true}
         if(settlement){
           if(record.settledAt!==settlement.settledAt){record.settledAt=settlement.settledAt;changed=true}
-          record.settlementSource='mlb-prop-ledger';
+          record.settlementSource=settlement.ledger==='basketball'?'basketball-event-ledger':'mlb-prop-ledger';
           record.settlementReason=settlement.reason||'';
           record.settlementLegIndexes=evaluated.results.filter(r=>r.status===settlement.status&&r.settledAt===settlement.settledAt).map(r=>r.index);
         }else if(record.autoCompleted&&record.settlementSource!=='manual'){
