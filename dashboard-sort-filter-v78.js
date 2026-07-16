@@ -1,4 +1,4 @@
-/* DASHBOARD SORT FILTER V78 — immutable save times, automatic ordering and filtered views */
+/* DASHBOARD SORT FILTER V79 — compact accessible control and inline ticket timestamps */
 (() => {
   'use strict';
 
@@ -21,15 +21,19 @@
     style.id='dashboardSortFilterV78Css';
     style.textContent=`
       #ticketList .savedOrder{display:none!important}
-      #dashboardView .dashboardToolbarV55{grid-template-columns:repeat(3,minmax(0,1fr))!important;grid-template-rows:auto auto!important}
-      #dashboardView .dashboardToolbarStatus{grid-column:1/3!important;grid-row:1!important;align-self:center!important}
-      #ticketSortFilterBtn{grid-column:3!important;grid-row:1!important;width:100%!important}
+      #dashboardView .dashboardToolbarV55{grid-template-columns:minmax(0,1fr) minmax(0,1.18fr) minmax(0,.82fr) 42px!important;grid-template-rows:auto auto!important;gap:6px!important}
+      #dashboardView .dashboardToolbarStatus{grid-column:1/-1!important;grid-row:1!important;align-self:center!important}
       #refreshTicketsBtn{grid-column:1!important;grid-row:2!important;width:100%!important}
       #toggleAllTicketsBtn{grid-column:2!important;grid-row:2!important;width:100%!important}
       #ticketSelectModeBtn{grid-column:3!important;grid-row:2!important;width:100%!important}
+      #ticketSortFilterBtn{grid-column:4!important;grid-row:2!important;width:42px!important;min-width:42px!important;height:34px!important;min-height:34px!important;padding:6px!important;display:flex!important;align-items:center!important;justify-content:center!important}
       #deleteSelectedTicketsBtn{grid-column:1/-1!important;grid-row:3!important}
-      #ticketSortFilterBtn.filterActive{box-shadow:inset 0 0 0 2px rgba(179,122,31,.62),0 4px 8px rgba(0,0,0,.18)!important}
-      .savedTimeStamp{margin-top:6px;color:#596372;font-size:10px;font-weight:750}
+      #ticketSortFilterBtn.filterActive{border-color:#9B6613!important;background:linear-gradient(180deg,#FFE69A,#D49A27 58%,#9A6310)!important;box-shadow:inset 0 0 0 2px rgba(255,239,174,.58),0 4px 8px rgba(121,78,11,.28)!important}
+      .sortFilterGlyph{display:flex;width:24px;height:19px;flex-direction:column;justify-content:space-between;align-items:flex-end}
+      .sortFilterGlyph span{display:block;height:3px;border-radius:3px;background:#26303B;box-shadow:0 1px 0 rgba(255,255,255,.48)}
+      .sortFilterGlyph span:nth-child(1){width:24px}.sortFilterGlyph span:nth-child(2){width:17px}.sortFilterGlyph span:nth-child(3){width:10px}
+      #ticketList .savedTimeStamp{display:inline-flex;align-items:center;margin:0;color:#596372;font-size:9px;font-weight:800;letter-spacing:.015em;white-space:nowrap}
+      #ticketList .savedSettlement.inlineSettlement{display:inline-flex;align-items:center;margin:0 0 0 2px!important;color:#596372;font-size:9px!important;font-weight:800;letter-spacing:.015em;white-space:nowrap}
       .sortFilterEmpty{grid-column:1/-1}
       .ticketSortBackdrop{position:fixed;inset:0;z-index:12000;display:flex;align-items:flex-end;justify-content:center;padding:14px;background:rgba(20,27,36,.46);backdrop-filter:blur(3px)}
       .ticketSortBackdrop.hide{display:none!important}
@@ -43,7 +47,13 @@
       .ticketSortOption input{width:17px;height:17px;margin:0;accent-color:#a76f18}
       .ticketSortActions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:13px}
       .ticketSortActions button{width:100%;min-width:0;padding:10px 5px;font-size:10px}
-      @media(max-width:390px){.ticketSortPanel{padding:13px}.ticketSortOptions.outcomes{grid-template-columns:repeat(2,minmax(0,1fr))}.ticketSortOption{font-size:10px;padding:6px}.ticketSortActions{gap:6px}}
+      @media(max-width:390px){
+        #dashboardView .dashboardHeader{grid-template-columns:1fr!important}
+        #dashboardView .dashboardHeader h2{grid-row:1!important}
+        #dashboardView .dashboardActions{grid-row:2!important}
+        #dashboardView .dashboardToolbarV55{gap:5px!important}
+        .ticketSortPanel{padding:13px}.ticketSortOptions.outcomes{grid-template-columns:repeat(2,minmax(0,1fr))}.ticketSortOption{font-size:10px;padding:6px}.ticketSortActions{gap:6px}
+      }
     `;
     document.head.appendChild(style);
   }
@@ -83,12 +93,19 @@
     card.querySelector('.savedTimeStamp')?.remove();
     const stamp=formatStamp(record.savedAt||record.createdAt);
     if(!stamp)return;
-    const line=document.createElement('div');
+    const line=document.createElement('span');
     line.className='savedTimeStamp';
     line.textContent='Saved '+stamp;
-    const stateRow=card.querySelector('.savedStateRow');
-    if(stateRow)stateRow.insertAdjacentElement('afterend',line);
-    else card.querySelector('.savedMeta')?.insertAdjacentElement('afterend',line);
+    const titleRow=card.querySelector('.savedTitleRow');
+    if(titleRow)titleRow.appendChild(line);
+    else card.querySelector('.savedMeta')?.insertAdjacentElement('beforebegin',line);
+  }
+
+  function placeSettlementStamp(card){
+    const settlement=card.querySelector('.savedSettlement'),row=card.querySelector('.savedStateRow');
+    if(!settlement||!row)return;
+    settlement.classList.add('inlineSettlement');
+    row.appendChild(settlement);
   }
 
   function updateTrigger(total,visible){
@@ -96,7 +113,7 @@
     if(!button)return;
     const active=state.sort!==DEFAULTS.sort||state.direction!==DEFAULTS.direction||state.filter!==DEFAULTS.filter;
     button.classList.toggle('filterActive',active);
-    button.textContent=active?'Sort / Filter •':'Sort / Filter';
+    button.setAttribute('aria-pressed',String(active));
     button.setAttribute('aria-label',active?`Sort and filter, showing ${visible} of ${total} tickets`:'Sort and filter tickets');
   }
 
@@ -108,7 +125,7 @@
     cards.forEach((card,index)=>{if(!card.dataset.ticketId&&list[index])card.dataset.ticketId=list[index].id;card.querySelector('.savedOrder')?.remove()});
     const byId=new Map(cards.map(card=>[card.dataset.ticketId,card]));
     const ordered=orderedRecords(list),visibleCards=[];
-    for(const record of ordered){const card=byId.get(record.id);if(card){addSaveStamp(card,record);visibleCards.push(card)}}
+    for(const record of ordered){const card=byId.get(record.id);if(card){addSaveStamp(card,record);placeSettlementStamp(card);visibleCards.push(card)}}
     box.replaceChildren(...visibleCards);
     if(!visibleCards.length&&list.length){
       const empty=document.createElement('div');empty.className='emptyState sortFilterEmpty';
@@ -156,7 +173,7 @@
       <fieldset class="ticketSortGroup"><legend>Show</legend><div class="ticketSortOptions outcomes">
         <label class="ticketSortOption"><input type="radio" name="ticket-filter" value="all">All</label>
         <label class="ticketSortOption"><input type="radio" name="ticket-filter" value="active">Active</label>
-        <label class="ticketSortOption"><input type="radio" name="ticket-filter" value="completed">Completed</label>
+        <label class="ticketSortOption"><input type="radio" name="ticket-filter" value="completed">Complete</label>
         <label class="ticketSortOption"><input type="radio" name="ticket-filter" value="won">Won</label>
         <label class="ticketSortOption"><input type="radio" name="ticket-filter" value="lost">Lost</label>
         <label class="ticketSortOption"><input type="radio" name="ticket-filter" value="push">Push</label>
@@ -173,7 +190,7 @@
     ensureMenu();
     const toolbar=document.getElementById('dashboardToolbarV55');
     if(!toolbar||document.getElementById('ticketSortFilterBtn'))return;
-    const button=document.createElement('button');button.id='ticketSortFilterBtn';button.type='button';button.className='ghost';button.textContent='Sort / Filter';
+    const button=document.createElement('button');button.id='ticketSortFilterBtn';button.type='button';button.className='ghost';button.setAttribute('aria-label','Sort and filter tickets');button.setAttribute('aria-pressed','false');button.innerHTML='<span class="sortFilterGlyph" aria-hidden="true"><span></span><span></span><span></span></span>';
     button.addEventListener('click',()=>{syncMenu();document.getElementById('ticketSortBackdrop')?.classList.remove('hide')});
     toolbar.appendChild(button);
   }
