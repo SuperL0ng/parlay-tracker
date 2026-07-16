@@ -49,10 +49,10 @@
     if(window.__dashboardRefreshRunning)return;
     const status=document.querySelector('.dashboardToolbarStatus');
     const refreshButton=document.getElementById('refreshTicketsBtn');
-    const cards=[...document.querySelectorAll('#ticketList .savedTicket')];
-    if(!cards.length){if(status)status.textContent='No tickets to refresh.';return}
-    const list=load(),byId=new Map(list.map(record=>[record.id,record]));
-    const targets=cards.map(card=>({card,panel:card.querySelector('.savedTicketDetails'),record:byId.get(card.dataset.ticketId)})).filter(x=>x.record);
+    const list=load();
+    if(!list.length){if(status)status.textContent='No tickets to refresh.';return}
+    const cards=new Map([...document.querySelectorAll('#ticketList .savedTicket')].map((card,index)=>[card.dataset.ticketId||list[index]?.id,card]).filter(([id])=>id));
+    const targets=list.map(record=>{const card=cards.get(record.id)||null;return{card,panel:card?.querySelector('.savedTicketDetails')||null,record}});
     if(!targets.length)return;
     window.__dashboardRefreshRunning=true;
     if(refreshButton){refreshButton.disabled=true;refreshButton.classList.add('refreshing');refreshButton.textContent='Refresh…'}
@@ -70,7 +70,7 @@
         record.liveOutcome=outcome;
         if(SETTLED.has(outcome)&&record.status!=='completed'&&!record.manualActiveOverride){record.status='completed';record.autoCompleted=true;record.updatedAt=now}
         if(target.panel)target.panel.innerHTML=detailsHtml(evaluatedRecord);
-        updateCardState(target.card,record);
+        if(target.card)updateCardState(target.card,record);
       });
       store(list);
       if(status)status.textContent=`Updated ${new Date().toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})}`;
@@ -80,7 +80,7 @@
     }finally{
       window.__dashboardRefreshRunning=false;
       if(refreshButton){refreshButton.disabled=false;refreshButton.classList.remove('refreshing');refreshButton.textContent='Refresh'}
-      document.dispatchEvent(new CustomEvent('parlay:dashboard-refreshed'));
+      document.dispatchEvent(new CustomEvent('parlay:dashboard-refreshed',{detail:{source:'dashboard-refresh'}}));
     }
   };
 
