@@ -1,4 +1,4 @@
-/* ACTUAL_SETTLEMENT_TIME_V44 — calculate dashboard timestamps without render feedback loops */
+/* ACTUAL_SETTLEMENT_TIME_V45 — keep settlement timestamps inline with outcomes */
 (() => {
   'use strict';
 
@@ -319,6 +319,7 @@
   }
 
   function formatStamp(value){return new Date(value).toLocaleString([], {year:'numeric',month:'numeric',day:'numeric',hour:'numeric',minute:'2-digit'})}
+  function ensureOutcomeRow(card){let row=card.querySelector('.ticketOutcomeRow');if(row)return row;const badge=card.querySelector('.ticketOutcome');if(!badge)return null;row=document.createElement('div');row.className='ticketOutcomeRow';badge.parentNode.insertBefore(row,badge);row.appendChild(badge);return row}
   function refreshVisibleStamps(list){
     if(!location.hash){if(typeof window.renderTicketDashboard==='function')window.renderTicketDashboard();return}
     const params=new URLSearchParams(location.hash.slice(1)),id=params.get('ticket'),active=params.get('view')==='active';
@@ -326,7 +327,7 @@
     [...document.querySelectorAll('#standaloneView .liveTicketCard')].forEach((card,i)=>{
       const r=records[i];card.querySelector('.settlementStamp')?.remove();if(!r?.settledAt)return;
       const stamp=document.createElement('div');stamp.className='settlementStamp';stamp.textContent='Settled '+formatStamp(r.settledAt);
-      card.querySelector('.liveSummary')?.insertAdjacentElement('beforebegin',stamp);
+      const row=ensureOutcomeRow(card);if(row)row.appendChild(stamp);else card.appendChild(stamp);
     });
   }
 
