@@ -146,9 +146,8 @@
       const button=event.target.closest('.shareTicketBtn');
       if(!button)return;
       const card=button.closest('.savedTicket');
-      const cards=[...document.querySelectorAll('.savedTicket')];
-      const index=cards.indexOf(card);
-      const record=load()[index];
+      const id=card?.dataset.ticketId;
+      const record=id?load().find(item=>item.id===id):null;
       if(!record)return;
       event.preventDefault();
       event.stopImmediatePropagation();
@@ -160,8 +159,9 @@
   function decorateBlankBooks(){
     const records=load();
     document.querySelectorAll('.savedTicket').forEach((card,index)=>{
+      const record=card.dataset.ticketId?records.find(item=>item.id===card.dataset.ticketId):records[index];
       const badge=card.querySelector('.bookBadge');
-      if(badge)badge.classList.toggle('hide',!clean(records[index]?.sportsbook));
+      if(badge)badge.classList.toggle('hide',!clean(record?.sportsbook));
     });
 
     const params=new URLSearchParams(location.hash.slice(1));
