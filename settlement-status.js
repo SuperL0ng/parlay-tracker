@@ -1,4 +1,4 @@
-/* SETTLEMENT_STATUS_V72 — defer MLB timestamps to the event ledger */
+/* SETTLEMENT_STATUS_V73 — defer tracked-sport timestamps to event ledgers */
 (() => {
   'use strict';
 
@@ -81,11 +81,11 @@
     if(active)return list.filter(r=>r.status!=='completed');
     return[];
   }
-  function usesMlbLedger(record){
+  function usesEventLedger(record){
     const ticket=record?.ticket||{},ticketLeague=clean(ticket.league).toUpperCase();
-    if(ticketLeague)return ticketLeague==='MLB';
+    if(ticketLeague)return ['MLB','NBA','WNBA'].includes(ticketLeague);
     const leagues=(ticket.legs||[]).map(leg=>clean(leg.league).toUpperCase()).filter(Boolean);
-    return leagues.length?leagues.every(league=>league==='MLB'):true;
+    return leagues.length?leagues.every(league=>['MLB','NBA','WNBA'].includes(league)):true;
   }
   function addStamp(card,record){
     card.querySelector('.settlementStamp')?.remove();
@@ -115,8 +115,9 @@
       if(!outcome)return;
       if(record.liveOutcome!==outcome){record.liveOutcome=outcome;changed=true}
       if(SETTLED.has(outcome)){
-        if(!record.settledAt&&!usesMlbLedger(record)){record.settledAt=now;record.settlementSource='refresh-time-fallback';changed=true}
-        if(usesMlbLedger(record)&&record.settlementSource!=='mlb-prop-ledger'){record.settlementSource='pending-mlb-ledger';changed=true}
+        const ledger=usesEventLedger(record);
+        if(!record.settledAt&&!ledger){record.settledAt=now;record.settlementSource='refresh-time-fallback';changed=true}
+        if(ledger&&!['mlb-prop-ledger','basketball-event-ledger'].includes(record.settlementSource)){record.settlementSource='pending-event-ledger';changed=true}
         if(record.status!=='completed'&&!record.manualActiveOverride){
           record.status='completed';
           record.updatedAt=now;
