@@ -168,7 +168,8 @@
     if(!list.length){box.innerHTML='<div class="emptyState">No saved tickets yet.</div>';return}
     box.innerHTML=list.map((r,i)=>{
       const t=r.ticket||{};
-      const meta=[(t.type||'').toUpperCase(),ticketLeague(t),t.game,`${(t.legs||[]).length} legs`].filter(Boolean).join(' · ');
+      const type=clean(t.type).toLowerCase(),legCount=type==='straight'?'':`${(t.legs||[]).length} legs`;
+      const meta=[type.toUpperCase(),ticketLeague(t),t.game,legCount].filter(Boolean).join(' · ');
       const stored=(r.status||'active').toUpperCase();
       const outcome=(r.liveOutcome||'PENDING').toUpperCase();
       const settlement=r.settledAt?`<span class="savedSettlement inlineSettlement">Settled ${formatStamp(r.settledAt)}</span>`:'';
