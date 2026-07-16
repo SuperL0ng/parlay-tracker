@@ -239,7 +239,7 @@
     const status=document.getElementById('ticketShareStatus');status.textContent='';
     try{
       if(!pending){pending=parseInput();showPreview(pending);return}
-      const now=new Date().toISOString(),ticket=clone(pending.ticket),record={id:makeId(),sportsbook:pending.sportsbook||'Other',status:'active',createdAt:now,updatedAt:now,ticket,canonical:clone(ticket)};
+      const now=new Date().toISOString(),ticket=clone(pending.ticket),record={id:makeId(),sportsbook:pending.sportsbook||'Other',status:'active',savedAt:now,createdAt:now,updatedAt:now,ticket,canonical:clone(ticket)};
       const list=load();list.push(record);store(list);closeModal();
       if(typeof window.renderTicketDashboard==='function')window.renderTicketDashboard();
       if(typeof window.showDashboard==='function')window.showDashboard();
@@ -289,7 +289,7 @@
       }
       compactImportedActions(actionsBox);
     });
-    if(shareAdded)document.dispatchEvent(new Event('parlay:dashboard-refreshed'));
+    if(shareAdded)document.dispatchEvent(new CustomEvent('parlay:dashboard-refreshed',{detail:{source:'sharing-decoration'}}));
   }
 
   function installDashboardHook(){
