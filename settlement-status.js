@@ -1,4 +1,4 @@
-/* SETTLEMENT_STATUS_V73 — defer tracked-sport timestamps to event ledgers */
+/* SETTLEMENT_STATUS_V74 — inline settlement timestamps and league metadata */
 (() => {
   'use strict';
 
@@ -30,7 +30,9 @@
     .liveLegValue.valueBehind1{color:#A86F00!important}
     .liveLegValue.valueBehind2{color:#D94841!important}
     .liveLegValue.valueBehind3{color:#C51F32!important}
-    .settlementStamp{margin:7px 0 2px;color:#5A6472;font-size:10px;font-weight:800;letter-spacing:.04em}
+    .ticketOutcomeRow{display:flex;align-items:center;flex-wrap:wrap;gap:7px;margin:8px 0 2px}
+    .ticketOutcomeRow .ticketOutcome{margin:0!important}
+    .settlementStamp{display:inline-flex;align-items:center;margin:0;color:#5A6472;font-size:10px;font-weight:800;letter-spacing:.025em;white-space:nowrap}
     .savedStateRow{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
     .savedStateBadge{display:inline-flex;align-items:center;padding:5px 8px;border-radius:7px;font-size:9px;font-weight:950;letter-spacing:.09em}
     .savedStateBadge.storage{background:#D4DBE5;color:#3F4855}
@@ -87,15 +89,20 @@
     const leagues=(ticket.legs||[]).map(leg=>clean(leg.league).toUpperCase()).filter(Boolean);
     return leagues.length?leagues.every(league=>['MLB','NBA','WNBA'].includes(league)):true;
   }
+  function ticketLeague(ticket){return clean(ticket?.league||(ticket?.legs||[]).find(leg=>clean(leg.league))?.league||'MLB').toUpperCase()}
+  function ensureOutcomeRow(card){
+    let row=card.querySelector('.ticketOutcomeRow');if(row)return row;
+    const badge=card.querySelector('.ticketOutcome');if(!badge)return null;
+    row=document.createElement('div');row.className='ticketOutcomeRow';badge.parentNode.insertBefore(row,badge);row.appendChild(badge);return row;
+  }
   function addStamp(card,record){
     card.querySelector('.settlementStamp')?.remove();
     if(!record?.settledAt)return;
     const stamp=document.createElement('div');
     stamp.className='settlementStamp';
     stamp.textContent='Settled '+formatStamp(record.settledAt);
-    const summary=card.querySelector('.liveSummary');
-    if(summary)summary.insertAdjacentElement('beforebegin',stamp);
-    else card.appendChild(stamp);
+    const row=ensureOutcomeRow(card);
+    if(row)row.appendChild(stamp);else card.appendChild(stamp);
   }
 
   function scanRenderedTickets(){
@@ -161,11 +168,11 @@
     if(!list.length){box.innerHTML='<div class="emptyState">No saved tickets yet.</div>';return}
     box.innerHTML=list.map((r,i)=>{
       const t=r.ticket||{};
-      const meta=[r.sportsbook,(t.type||'').toUpperCase(),t.date,t.game,`${(t.legs||[]).length} legs`].filter(Boolean).join(' · ');
+      const meta=[(t.type||'').toUpperCase(),ticketLeague(t),t.game,`${(t.legs||[]).length} legs`].filter(Boolean).join(' · ');
       const stored=(r.status||'active').toUpperCase();
       const outcome=(r.liveOutcome||'PENDING').toUpperCase();
-      const settlement=r.settledAt?`<div class="savedSettlement">Settled ${formatStamp(r.settledAt)}</div>`:'';
-      return `<article class="savedTicket"><div class="savedTicketTop"><div><span class="bookBadge">${esc(r.sportsbook||'Other')}</span><h3>${esc(t.title||'Untitled')}</h3><div class="savedMeta">${esc(meta)}</div><div class="savedStateRow"><span class="savedStateBadge storage">${esc(stored)}</span>${statusBadge(outcome)}</div>${settlement}</div><div class="savedOrder"><button class="ghost" type="button" onclick="moveSavedTicket('${r.id}',-1)" ${i===0?'disabled':''}>↑</button><button class="ghost" type="button" onclick="moveSavedTicket('${r.id}',1)" ${i===list.length-1?'disabled':''}>↓</button></div></div><div class="savedActions"><button class="ghost" type="button" onclick="openSavedTicketView('${r.id}')">View</button><button class="ghost" type="button" onclick="editSavedTicket('${r.id}')">Edit</button><button class="ghost" type="button" onclick="duplicateSavedTicket('${r.id}')">Duplicate</button><button class="ghost" type="button" onclick="copySavedTicketCode('${r.id}')">Copy Code</button><button class="ghost" type="button" onclick="toggleSavedTicketStatus('${r.id}')">${r.status==='completed'?'Mark Active':'Complete'}</button><button type="button" onclick="deleteSavedTicket('${r.id}')">Delete</button></div></article>`;
+      const settlement=r.settledAt?`<span class="savedSettlement inlineSettlement">Settled ${formatStamp(r.settledAt)}</span>`:'';
+      return `<article class="savedTicket"><div class="savedTicketTop"><div><span class="bookBadge">${esc(r.sportsbook||'Other')}</span><h3>${esc(t.title||'Untitled')}</h3><div class="savedMeta">${esc(meta)}</div><div class="savedStateRow"><span class="savedStateBadge storage">${esc(stored)}</span>${statusBadge(outcome)}${settlement}</div></div><div class="savedOrder"><button class="ghost" type="button" onclick="moveSavedTicket('${r.id}',-1)" ${i===0?'disabled':''}>↑</button><button class="ghost" type="button" onclick="moveSavedTicket('${r.id}',1)" ${i===list.length-1?'disabled':''}>↓</button></div></div><div class="savedActions"><button class="ghost" type="button" onclick="openSavedTicketView('${r.id}')">View</button><button class="ghost" type="button" onclick="editSavedTicket('${r.id}')">Edit</button><button class="ghost" type="button" onclick="duplicateSavedTicket('${r.id}')">Duplicate</button><button class="ghost" type="button" onclick="copySavedTicketCode('${r.id}')">Copy Code</button><button class="ghost" type="button" onclick="toggleSavedTicketStatus('${r.id}')">${r.status==='completed'?'Mark Active':'Complete'}</button><button type="button" onclick="deleteSavedTicket('${r.id}')">Delete</button></div></article>`;
     }).join('');
   }
 
