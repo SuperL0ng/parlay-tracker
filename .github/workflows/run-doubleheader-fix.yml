@@ -29,8 +29,9 @@ jobs:
           start=next(i for i,line in enumerate(source) if "python3 - <<'PY'" in line)+1
           end=next(i for i in range(start,len(source)) if source[i].strip()=='PY')
           lines=source[start:end]
-          indent=min(len(line)-len(line.lstrip()) for line in lines if line.strip())
-          Path('/tmp/apply-doubleheader-fix.py').write_text('\n'.join(line[indent:] for line in lines)+'\n')
+          prefix='          '
+          extracted=[line[len(prefix):] if line.startswith(prefix) else line for line in lines]
+          Path('/tmp/apply-doubleheader-fix.py').write_text('\n'.join(extracted)+'\n')
           PY
             python3 /tmp/apply-doubleheader-fix.py > /tmp/doubleheader-patch.log 2>&1
             status=$?
