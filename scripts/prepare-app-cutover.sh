@@ -1,0 +1,141 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+python3 - <<'PY'
+from pathlib import Path
+import re
+import textwrap
+
+Path('CNAME').write_text('simonsports.bet\n')
+
+index_path=Path('index.html')
+index=index_path.read_text()
+
+for old,new in {
+  'https://superl0ng.github.io/parlay-tracker/ssb-gold-v1.ico':'./ssb-gold-v1.ico',
+  'https://superl0ng.github.io/parlay-tracker/ssb-gold-v1-64.png':'./ssb-gold-v1-64.png',
+  'https://superl0ng.github.io/parlay-tracker/ssb-gold-v1-128.png':'./ssb-gold-v1-128.png',
+  'https://superl0ng.github.io/parlay-tracker/ssb-gold-touch-v1-180.png':'./ssb-gold-touch-v1-180.png',
+  'https://superl0ng.github.io/parlay-tracker/manifest-gold-v1.json':'./manifest-gold-v1.json',
+}.items():
+  index=index.replace(old,new)
+
+index=index.replace('https://superl0ng.github.io/parlay-tracker/ssb-share-v3.png','https://simonsports.bet/ssb-share-v3.png')
+index=index.replace('https://superl0ng.github.io/parlay-tracker/','https://simonsports.bet/')
+index,n=re.subn(r"const goldHost=\[[^\n]+;","const goldHost=true;",index,count=1)
+if n!=1:
+  raise SystemExit('Could not replace goldHost contract')
+
+icon_assets='<link rel="icon" href="./ssb-gold-v1.ico?v=gold-app-1" sizes="any"><link rel="shortcut icon" href="./ssb-gold-v1.ico?v=gold-app-1"><link rel="icon" type="image/png" sizes="64x64" href="./ssb-gold-v1-64.png?v=gold-app-1"><link rel="icon" type="image/png" sizes="128x128" href="./ssb-gold-v1-128.png?v=gold-app-1"><link rel="apple-touch-icon" sizes="180x180" href="./ssb-gold-touch-v1-180.png?v=gold-app-1"><link rel="apple-touch-icon-precomposed" sizes="180x180" href="./ssb-gold-touch-v1-180.png?v=gold-app-1"><link rel="manifest" href="./manifest-gold-v1.json?v=gold-app-1">'
+head_assets=icon_assets+'<meta name="theme-color" content="#c79442"><meta name="apple-mobile-web-app-title" content="Parlay Tracker"><meta property="og:type" content="website"><meta property="og:title" content="Parlay Tracker"><meta property="og:description" content="Simon Sports Betting Parlay Tracker"><meta property="og:url" content="https://simonsports.bet/"><meta property="og:image" content="https://simonsports.bet/ssb-share-v3.png"><meta property="og:image:type" content="image/png"><meta property="og:image:width" content="180"><meta property="og:image:height" content="180"><meta name="twitter:card" content="summary"><meta name="twitter:image" content="https://simonsports.bet/ssb-share-v3.png">'
+index,n=re.subn(r"    const iconAssets=.*\n","    const iconAssets="+repr(icon_assets)+";\n",index,count=1)
+if n!=1:
+  raise SystemExit('Could not replace iconAssets contract')
+index,n=re.subn(r"    const headAssets=.*\n","    const headAssets="+repr(head_assets)+";\n",index,count=1)
+if n!=1:
+  raise SystemExit('Could not replace headAssets contract')
+index=index.replace('comGoldHeaderAccent','goldAppHeaderAccent')
+index_path.write_text(index)
+
+verifier=textwrap.dedent(r'''\
+#!/usr/bin/env node
+import { existsSync, readFileSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const root=resolve(dirname(fileURLToPath(import.meta.url)),"..");
+const failures=[];
+const check=(condition,message)=>{if(!condition)failures.push(message)};
+const read=(name)=>readFileSync(join(root,name),"utf8");
+
+const required=[
+  "index.html","CNAME","manifest-gold-v1.json","library-backup.js",
+  "ssb-gold-v1.ico","ssb-gold-v1-64.png","ssb-gold-v1-128.png",
+  "ssb-gold-touch-v1-180.png","ssb-gold-v1-192.png","ssb-gold-v1-512.png",
+  "ssb-share-v3.png","simon-sports-betting-nameplate.png",
+  "ssb_emblem_webapp_box_transparent_768.png"
+];
+required.forEach(name=>check(existsSync(join(root,name)),`Missing required app asset: ${name}`));
+
+const cname=read("CNAME").trim();
+const index=read("index.html");
+check(cname==="simonsports.bet","App CNAME must be simonsports.bet");
+check(index.includes("const goldHost=true;"),"Gold identity must belong to the app repo, not host detection");
+check(index.includes('content="https://simonsports.bet/"'),"Missing final .bet social URL");
+check(index.includes('https://simonsports.bet/ssb-share-v3.png'),"Missing final .bet share image");
+check(index.includes('./manifest-gold-v1.json'),"Missing local gold manifest reference");
+check(index.includes('./ssb-gold-v1.ico'),"Missing local gold favicon reference");
+check(!index.includes("simonsportsbetting.com"),"App index still references the public .com domain");
+check(!index.includes("https://superl0ng.github.io/parlay-tracker/"),"App index still uses the old project-page identity URL");
+check(!index.includes("manifest-v2.json"),"App index still contains silver manifest fallback");
+check(!index.includes("ssb-favicon-v3"),"App index still contains silver icon fallback");
+check(index.includes("raw.githubusercontent.com/SuperL0ng/parlay-tracker/"),"Historical base source contract is missing");
+check(index.includes("data-library-backup"),"Whole-library backup loader is missing");
+
+const manifest=JSON.parse(read("manifest-gold-v1.json"));
+check(manifest.start_url==="/","Gold manifest start_url must be /");
+check(manifest.theme_color==="#c79442","Gold manifest theme color is wrong");
+for(const icon of manifest.icons||[]){
+  const rel=String(icon.src||"").replace(/^\.\//,"");
+  check(existsSync(join(root,rel)),`Missing gold manifest icon: ${rel}`);
+}
+
+for(const match of index.matchAll(/src=["']\.\/([^?"']+)/g)){
+  check(existsSync(join(root,match[1])),`Missing local script or image: ${match[1]}`);
+}
+
+if(failures.length){
+  console.error("App deployment contract failed:");
+  failures.forEach(item=>console.error(`- ${item}`));
+  process.exit(1);
+}
+console.log("Gold app deployment contract verified.");
+''')
+Path('scripts/verify-hosting-contract.mjs').write_text(verifier)
+
+docs=textwrap.dedent('''\
+# Parlay Tracker hosting and release workflow
+
+## Repository roles
+
+- `SuperL0ng/parlay-tracker` is the **app repo**: the authoritative development and staging application. Its final custom domain is `https://simonsports.bet/`, and its identity is always gold.
+- `SuperL0ng/SuperL0ng.github.io` is the **root repo**: the independent public production deployment. Its final custom domain is `https://simonsportsbetting.com/`, and its identity is silver.
+
+Theme identity belongs to the repository, not to hostname-detection logic. The app repo is gold wherever it is opened. The root repo is silver wherever it is opened.
+
+## Deployment contract
+
+The root repo is self-contained. It must not fetch, mirror, rewrite, or load the app repo at runtime. A production release is promoted by copying a tested app release into the root repo and then applying only the root repo's silver identity, metadata, and deployment contract.
+
+The two custom domains are separate browser origins. Each therefore has an independent `localStorage` ticket library. Ticket libraries do not follow repository or domain reassignment automatically. Export both libraries before any domain migration.
+
+## App-repo release
+
+1. Make and test the change in `parlay-tracker`.
+2. Run `node scripts/verify-hosting-contract.mjs`.
+3. Confirm JavaScript syntax checks pass.
+4. Publish and test `https://simonsports.bet/`.
+5. Do not alter the root repo until the app release is approved for production.
+
+## Production promotion
+
+1. Export the ticket libraries from both custom domains.
+2. Copy the approved application files into the root repo through a controlled promotion.
+3. Preserve the root repo's silver icons, manifest, metadata, CNAME, and independent asset paths.
+4. Run the root deployment verifier.
+5. Publish and test `https://simonsportsbetting.com/`.
+6. Verify ticket views, Active Tickets, Close behavior, header images, icons, manifests, share metadata, and domain-local ticket storage.
+
+## Domain roles
+
+| Domain | Repository | Role | Identity |
+|---|---|---|---|
+| `simonsports.bet` | `parlay-tracker` | development/staging | gold |
+| `simonsportsbetting.com` | `SuperL0ng.github.io` | public production | silver |
+''')
+Path('docs/HOSTING_WORKFLOW.md').write_text(docs)
+PY
+
+node scripts/verify-hosting-contract.mjs
+find . -path './.git' -prune -o -name '*.js' -type f -print0 | xargs -0 -n1 node --check
+rm -f .github/workflows/app-cutover-prep.yml scripts/prepare-app-cutover.sh
