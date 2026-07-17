@@ -1,0 +1,297 @@
+name: Apply MLB doubleheader binding fix
+
+on:
+  push:
+    paths:
+      - .github/workflows/apply-doubleheader-fix.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Apply stable game-instance binding
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          def replace_once(path, old, new):
+              p=Path(path)
+              s=p.read_text()
+              count=s.count(old)
+              if count!=1:
+                  raise SystemExit(f'{path}: expected one exact match, found {count}')
+              p.write_text(s.replace(old,new,1))
+
+          core=Path('tracker-core-v51.js')
+          s=core.read_text()
+          old="  function findGame(games,key,ticket=null,leg=null){if(!key)return null;const [away,home]=key.split('@');let matches=(games||[]).filter(g=>findTeam(g,away)&&findTeam(g,home));const league=effectiveLeague(ticket,leg);if(league)matches=matches.filter(g=>String(g.__sport||'').toLowerCase()===league);const date=leg?.date||ticket?.date;if(date){const dm=matches.filter(g=>gameDateCT(g)===date);if(dm.length)matches=dm}if(!matches.length)return null;return matches.find(g=>!isFinal(g))||matches[0]}"
+          new="""  function gameId(game){return String(game?.id||game?.uid||game?.gamePk||'').trim()}
+  function gameStartCT(game){const d=new Date(game?.date||game?.gameDate||'');if(Number.isNaN(d.getTime()))return'';const parts={};new Intl.DateTimeFormat('en-US',{timeZone:TZ,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(d).forEach(part=>{if(part.type!=='literal')parts[part.type]=part.value});return `${parts.year||''}${parts.month||''}${parts.day||''}T${parts.hour||''}${parts.minute||''}`}
+  function instanceValue(ticket,leg,name){const lv=leg?.[name],tv=ticket?.[name];return lv!==undefined&&lv!==null&&lv!==''?lv:tv}
+  function referenceTime(ticket,leg){const raw=instanceValue(ticket,leg,'gameSavedAt')||ticket?.__recordReferenceTime||'';const n=new Date(raw).getTime();return Number.isFinite(n)?n:null}
+  function nearestByTime(matches,time){return matches.reduce((best,game)=>{const value=new Date(game?.date||'').getTime();if(!Number.isFinite(value))return best;const distance=Math.abs(value-time);return !best||distance<best.distance?{game,distance}:best},null)?.game||null}
+  function findGame(games,key,ticket=null,leg=null){if(!key)return null;const [away,home]=key.split('@');let matches=(games||[]).filter(g=>findTeam(g,away)&&findTeam(g,home));const league=effectiveLeague(ticket,leg);if(league)matches=matches.filter(g=>String(g.__sport||'').toLowerCase()===league);const date=leg?.date||ticket?.date;if(date){const dm=matches.filter(g=>gameDateCT(g)===date);if(dm.length)matches=dm}if(!matches.length)return null;matches=[...matches].sort((a,b)=>new Date(a?.date||0)-new Date(b?.date||0));const wantedId=String(instanceValue(ticket,leg,'gameId')||'').trim();if(wantedId){const exact=matches.find(g=>gameId(g)===wantedId);if(exact)return exact}const wantedStart=String(instanceValue(ticket,leg,'gameStart')||'').trim();if(wantedStart){const exact=matches.find(g=>gameStartCT(g)===wantedStart);if(exact)return exact}const ordinal=Number(instanceValue(ticket,leg,'gameNumber'));if(Number.isInteger(ordinal)&&ordinal>=1&&ordinal<=matches.length)return matches[ordinal-1];if(matches.length===1)return matches[0];const ref=referenceTime(ticket,leg);if(ref!==null){const nearest=nearestByTime(matches,ref);if(nearest)return nearest}return matches[0]}"""
+          if s.count(old)!=1:
+              raise SystemExit('tracker-core-v51.js: findGame target mismatch')
+          s=s.replace(old,new,1)
+          old_export="  window.ParlayTrackerCore={TZ,TEAM_ALIASES,clean,comps,teamMatches,findTeam,score,isSuspended,isFinal,isLive,hasStarted,outsDots,detail,scheduledCT,gameDateCT,legGame,effectiveLeague,findGame,baseGameMeta,legMeta,total,opponentAbbr,linescore,f5Score,f5Complete,h1Score,h1Complete,fmtRecord,statusObj,gameScoreValue,marginForPick,f5MarginForPick,h1MarginForPick,trendClass,ticketState};"
+          new_export="  window.ParlayTrackerCore={TZ,TEAM_ALIASES,clean,comps,teamMatches,findTeam,score,isSuspended,isFinal,isLive,hasStarted,outsDots,detail,scheduledCT,gameDateCT,gameId,gameStartCT,instanceValue,referenceTime,findGame,baseGameMeta,legMeta,total,opponentAbbr,linescore,f5Score,f5Complete,h1Score,h1Complete,fmtRecord,statusObj,gameScoreValue,marginForPick,f5MarginForPick,h1MarginForPick,trendClass,ticketState};"
+          if s.count(old_export)!=1:
+              raise SystemExit('tracker-core-v51.js: export target mismatch')
+          core.write_text(s.replace(old_export,new_export,1))
+
+          sources=Path('tracker-sources-v51.js')
+          s=sources.read_text()
+          old="""  async function resolveMLBGamePk(date,key){const [away,home]=String(key||'').split('@');const games=await fetchMLBSchedule(date);const found=games.find(g=>mlbTeamMatches(g.teams?.away?.team,away)&&mlbTeamMatches(g.teams?.home?.team,home));return found?.gamePk||null}
+  async function fetchMLBFeed(ticket,leg){const date=leg?.date||ticket?.date,key=C.legGame(ticket,leg);if(!date||!key)return null;const pk=await resolveMLBGamePk(date,key);if(!pk)return null;return cacheRequest(mlbFeedCache,pk,()=>jsonFetch(`https://statsapi.mlb.com/api/v1.1/game/${pk}/feed/live`).catch(()=>null))}"""
+          new="""  function scheduleStartCT(game){return C.gameStartCT({date:game?.gameDate})}
+  async function resolveMLBGamePk(date,key,event,ticket,leg){const [away,home]=String(key||'').split('@');let games=(await fetchMLBSchedule(date)).filter(g=>mlbTeamMatches(g.teams?.away?.team,away)&&mlbTeamMatches(g.teams?.home?.team,home));if(!games.length)return null;games=[...games].sort((a,b)=>new Date(a?.gameDate||0)-new Date(b?.gameDate||0));const explicitPk=Number(C.instanceValue(ticket,leg,'gamePk'));if(Number.isFinite(explicitPk)){const exact=games.find(g=>Number(g.gamePk)===explicitPk);if(exact)return exact.gamePk}const eventStart=C.gameStartCT(event);const wantedStart=String(C.instanceValue(ticket,leg,'gameStart')||eventStart||'').trim();if(wantedStart){const exact=games.find(g=>scheduleStartCT(g)===wantedStart);if(exact)return exact.gamePk}const ordinal=Number(C.instanceValue(ticket,leg,'gameNumber'));if(Number.isInteger(ordinal)&&ordinal>=1&&ordinal<=games.length)return games[ordinal-1].gamePk;const rawRef=event?.date||C.instanceValue(ticket,leg,'gameSavedAt')||ticket?.__recordReferenceTime||'';const ref=new Date(rawRef).getTime();if(Number.isFinite(ref)){const nearest=games.reduce((best,g)=>{const t=new Date(g?.gameDate||'').getTime();if(!Number.isFinite(t))return best;const distance=Math.abs(t-ref);return !best||distance<best.distance?{g,distance}:best},null);if(nearest)return nearest.g.gamePk}return games[0].gamePk}
+  async function fetchMLBFeed(ticket,leg,event){const date=leg?.date||ticket?.date,key=C.legGame(ticket,leg);if(!date||!key)return null;const pk=await resolveMLBGamePk(date,key,event,ticket,leg);if(!pk)return null;return cacheRequest(mlbFeedCache,pk,()=>jsonFetch(`https://statsapi.mlb.com/api/v1.1/game/${pk}/feed/live`).catch(()=>null))}"""
+          if s.count(old)!=1:
+              raise SystemExit('tracker-sources-v51.js: resolver target mismatch')
+          s=s.replace(old,new,1)
+          old_load="  async function loadGameData(ticket,leg,event){const summary=event?await fetchSummary(event):null;let mlbFeed=null;if((event?.__sport||C.effectiveLeague(ticket,leg)||'mlb')==='mlb'){try{mlbFeed=await fetchMLBFeed(ticket,leg)}catch{}}return{summary,mlbFeed}}"
+          new_load="  async function loadGameData(ticket,leg,event){const summary=event?await fetchSummary(event):null;let mlbFeed=null;if((event?.__sport||C.effectiveLeague(ticket,leg)||'mlb')==='mlb'){try{mlbFeed=await fetchMLBFeed(ticket,leg,event)}catch{}}return{summary,mlbFeed}}"
+          if s.count(old_load)!=1:
+              raise SystemExit('tracker-sources-v51.js: loadGameData target mismatch')
+          sources.write_text(s.replace(old_load,new_load,1))
+
+          evaluator=Path('tracker-evaluator-v51.js')
+          s=evaluator.read_text()
+          old="  async function evaluateRecord(record,games){const ticket=record.ticket||{};const legs=await Promise.all((ticket.legs||[]).map(leg=>evalLeg(ticket,leg,games)));return{...record,__evaluated:legs}}"
+          new="  async function evaluateRecord(record,games){const source=record.ticket||{},ticket={...source,__recordReferenceTime:record.savedAt||record.createdAt||record.updatedAt||''};const legs=await Promise.all((source.legs||[]).map(leg=>evalLeg(ticket,leg,games)));return{...record,__evaluated:legs}}"
+          if s.count(old)!=1:
+              raise SystemExit('tracker-evaluator-v51.js: evaluateRecord target mismatch')
+          evaluator.write_text(s.replace(old,new,1))
+
+          actual=Path('actual-settlement-time.js')
+          s=actual.read_text()
+          replacement="""  function instanceValue(ticket,leg,name){const C=window.ParlayTrackerCore;return C?.instanceValue?C.instanceValue(ticket,leg,name):(leg?.[name]??ticket?.[name])}
+  function startKey(raw){const C=window.ParlayTrackerCore;return C?.gameStartCT?C.gameStartCT({date:raw}):''}
+  function chooseInstance(candidates,ticket,leg,record,idOf,dateOf){if(!candidates.length)return null;const sorted=[...candidates].sort((a,b)=>new Date(dateOf(a)||0)-new Date(dateOf(b)||0));const explicitPk=Number(instanceValue(ticket,leg,'gamePk'));if(Number.isFinite(explicitPk)){const exact=sorted.find(item=>Number(idOf(item))===explicitPk);if(exact)return exact}const explicitId=clean(instanceValue(ticket,leg,'gameId'));if(explicitId){const exact=sorted.find(item=>clean(idOf(item))===explicitId);if(exact)return exact}const wantedStart=clean(instanceValue(ticket,leg,'gameStart'));if(wantedStart){const exact=sorted.find(item=>startKey(dateOf(item))===wantedStart);if(exact)return exact}const ordinal=Number(instanceValue(ticket,leg,'gameNumber'));if(Number.isInteger(ordinal)&&ordinal>=1&&ordinal<=sorted.length)return sorted[ordinal-1];const rawRef=instanceValue(ticket,leg,'gameSavedAt')||record?.savedAt||record?.createdAt||record?.updatedAt||'';const ref=new Date(rawRef).getTime();if(Number.isFinite(ref)){const nearest=sorted.reduce((best,item)=>{const time=new Date(dateOf(item)||'').getTime();if(!Number.isFinite(time))return best;const distance=Math.abs(time-ref);return !best||distance<best.distance?{item,distance}:best},null);if(nearest)return nearest.item}return sorted[0]}
+  function mlbScheduleTeamMatches(team,abbr){const C=window.ParlayTrackerCore;return C?.teamMatches?C.teamMatches(team||{},abbr):teamCode(team)===clean(abbr).toUpperCase()}
+
+  async function getFeed(date,game,ticket={},leg={},record={}){
+    const discriminator=[instanceValue(ticket,leg,'gamePk'),instanceValue(ticket,leg,'gameId'),instanceValue(ticket,leg,'gameStart'),instanceValue(ticket,leg,'gameNumber'),record?.id].join('|');
+    const key=`${date}|${game}|${discriminator}`;
+    if(cache.has(key))return cache.get(key);
+    const promise=(async()=>{
+      const p=parts(game);
+      const schedule=await fetch(`${SCHEDULE}?sportId=1&date=${encodeURIComponent(dashDate(date))}&hydrate=team`,{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error(`Schedule ${r.status}`);return r.json()});
+      const games=(schedule.dates||[]).flatMap(d=>d.games||[]).filter(g=>mlbScheduleTeamMatches(g.teams?.away?.team||g.teams?.away,p.away)&&mlbScheduleTeamMatches(g.teams?.home?.team||g.teams?.home,p.home));
+      const match=chooseInstance(games,ticket,leg,record,g=>g?.gamePk,g=>g?.gameDate);
+      if(!match?.gamePk)throw new Error('Game not found');
+      return fetch(`${FEED}/${match.gamePk}/feed/live`,{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error(`Feed ${r.status}`);return r.json()});
+    })();
+    cache.set(key,promise);
+    try{return await promise}catch(e){cache.delete(key);throw e}
+  }"""
+          pattern=r"  async function getFeed\(date,game\)\{.*?\n  \}\n\n  function basketballPath"
+          s,count=re.subn(pattern,replacement+"\n\n  function basketballPath",s,count=1,flags=re.S)
+          if count!=1:
+              raise SystemExit('actual-settlement-time.js: getFeed target mismatch')
+          basketball="""  async function getBasketballSummary(date,game,league,ticket={},leg={},record={}){
+    const discriminator=[instanceValue(ticket,leg,'gameId'),instanceValue(ticket,leg,'gameStart'),instanceValue(ticket,leg,'gameNumber'),record?.id].join('|');
+    const key=`${league}|${date}|${game}|${discriminator}`;
+    if(cache.has(key))return cache.get(key);
+    const promise=(async()=>{
+      const p=parts(game),path=basketballPath(league);
+      const board=await fetch(`${ESPN}/${path}/scoreboard?dates=${encodeURIComponent(clean(date).replace(/\D/g,''))}&limit=100`,{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error(`Scoreboard ${r.status}`);return r.json()});
+      const candidates=(board.events||[]).filter(e=>{const competitors=e?.competitions?.[0]?.competitors||[],away=competitors.find(c=>c.homeAway==='away'),home=competitors.find(c=>c.homeAway==='home');return espnTeamMatches(away?.team,p.away)&&espnTeamMatches(home?.team,p.home)});
+      const event=chooseInstance(candidates,ticket,leg,record,e=>e?.id,e=>e?.date);
+      if(!event?.id)throw new Error('Basketball game not found');
+      return fetch(`${ESPN}/${path}/summary?event=${encodeURIComponent(event.id)}`,{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error(`Summary ${r.status}`);return r.json()});
+    })();
+    cache.set(key,promise);
+    try{return await promise}catch(e){cache.delete(key);throw e}
+  }"""
+          pattern=r"  async function getBasketballSummary\(date,game,league\)\{.*?\n  \}\n\n  function basketballPlays"
+          s,count=re.subn(pattern,basketball+"\n\n  function basketballPlays",s,count=1,flags=re.S)
+          if count!=1:
+              raise SystemExit('actual-settlement-time.js: basketball target mismatch')
+          s=s.replace("const feed=await getFeed(date,game)","const feed=await getFeed(date,game,ticket,leg,record)")
+          s=s.replace("const summary=await getBasketballSummary(date,game,league)","const summary=await getBasketballSummary(date,game,league,ticket,leg,record)")
+          actual.write_text(s)
+
+          pregame=Path('pregame-status-correction.js')
+          s=pregame.read_text()
+          old="""  function findScheduledGame(games,value){
+    const wanted=gameKey(value);
+    return games.find(game=>`${scheduleCode(game.teams?.away)}@${scheduleCode(game.teams?.home)}`===wanted)||null;
+  }"""
+          new="""  function instanceValue(ticket,leg,name){const C=window.ParlayTrackerCore;return C?.instanceValue?C.instanceValue(ticket,leg,name):(leg?.[name]??ticket?.[name])}
+  function scheduledStartKey(game){const C=window.ParlayTrackerCore;return C?.gameStartCT?C.gameStartCT({date:game?.gameDate}):''}
+  function findScheduledGame(games,value,ticket={},leg={},record={}){
+    const wanted=gameKey(value);
+    const matches=games.filter(game=>`${scheduleCode(game.teams?.away)}@${scheduleCode(game.teams?.home)}`===wanted).sort((a,b)=>new Date(a?.gameDate||0)-new Date(b?.gameDate||0));
+    if(!matches.length)return null;
+    const pk=Number(instanceValue(ticket,leg,'gamePk'));if(Number.isFinite(pk)){const exact=matches.find(game=>Number(game.gamePk)===pk);if(exact)return exact}
+    const wantedStart=clean(instanceValue(ticket,leg,'gameStart'));if(wantedStart){const exact=matches.find(game=>scheduledStartKey(game)===wantedStart);if(exact)return exact}
+    const ordinal=Number(instanceValue(ticket,leg,'gameNumber'));if(Number.isInteger(ordinal)&&ordinal>=1&&ordinal<=matches.length)return matches[ordinal-1];
+    const ref=new Date(instanceValue(ticket,leg,'gameSavedAt')||record?.savedAt||record?.createdAt||record?.updatedAt||'').getTime();
+    if(Number.isFinite(ref)){const nearest=matches.reduce((best,game)=>{const time=new Date(game?.gameDate||'').getTime();if(!Number.isFinite(time))return best;const distance=Math.abs(time-ref);return !best||distance<best.distance?{game,distance}:best},null);if(nearest)return nearest.game}
+    return matches[0];
+  }"""
+          if s.count(old)!=1:
+              raise SystemExit('pregame-status-correction.js: finder target mismatch')
+          s=s.replace(old,new,1)
+          old_call="      const scheduled=findScheduledGame(schedules.get(date),game);"
+          new_call="      const scheduled=findScheduledGame(schedules.get(date),game,ticket,leg,record);"
+          if s.count(old_call)!=1:
+              raise SystemExit('pregame-status-correction.js: call target mismatch')
+          pregame.write_text(s.replace(old_call,new_call,1))
+
+          binding=r'''/* DOUBLEHEADER GAME BINDING V1 — preserve the selected event instance */
+(() => {
+  'use strict';
+  const MAN='__manual__';
+  const clean=value=>String(value??'').trim();
+  const ymd=value=>clean(value).replace(/\D/g,'').slice(0,8);
+
+  function selectDate(select){
+    const leg=select?.closest?.('.leg');
+    return ymd(leg?.querySelector?.('.ldate')?.value||document.getElementById('date')?.value||'');
+  }
+  function parseLabelStart(label,date){
+    const match=clean(label).match(/\b(\d{1,2}):(\d{2})\s*([ap])\.?m\.?\s*(?:ct)?\b/i);
+    if(!match||date.length!==8)return'';
+    let hour=Number(match[1])%12;if(match[3].toLowerCase()==='p')hour+=12;
+    return `${date}T${String(hour).padStart(2,'0')}${match[2]}`;
+  }
+  function normalizeStart(raw,date){
+    const value=clean(raw);if(/^\d{8}T\d{4}$/.test(value))return value;
+    const C=window.ParlayTrackerCore;if(value&&C?.gameStartCT){const key=C.gameStartCT({date:value});if(key)return key}
+    return parseLabelStart(value,date);
+  }
+  function decorateOptions(select,items){
+    if(!select?.matches?.('#ticketGame,.lgame'))return;
+    const date=selectDate(select),source=Array.isArray(items)?items:[];
+    const options=[...select.options].filter(option=>option.value&&option.value!==MAN);
+    options.forEach((option,index)=>{
+      const item=source[index];
+      if(item&&typeof item==='object'){
+        const id=clean(item.gameId||item.eventId||item.id||item.uid);if(id)option.dataset.gameId=id;
+        const pk=clean(item.gamePk);if(pk)option.dataset.gamePk=pk;
+        const start=normalizeStart(item.gameStart||item.startTime||item.start||item.date||item.gameDate,date);if(start)option.dataset.gameStart=start;
+        const number=Number(item.gameNumber||item.doubleHeaderGame);if(Number.isInteger(number)&&number>0)option.dataset.gameNumber=String(number);
+      }
+      if(!option.dataset.gameStart){const start=parseLabelStart(option.dataset.fullLabel||option.textContent,date);if(start)option.dataset.gameStart=start}
+    });
+  }
+  function bindingFor(select){
+    const option=select?.options?.[select.selectedIndex];
+    if(!option||!option.value||option.value===MAN)return{};
+    const same=[...select.options].filter(candidate=>candidate.value===option.value);
+    const ordinal=Number(option.dataset.gameNumber)||((same.length>1)?same.indexOf(option)+1:0);
+    return{gameId:clean(option.dataset.gameId),gamePk:clean(option.dataset.gamePk),gameStart:clean(option.dataset.gameStart)||parseLabelStart(option.dataset.fullLabel||option.textContent,selectDate(select)),gameNumber:ordinal||undefined,gameSavedAt:new Date().toISOString()};
+  }
+  function applyBinding(target,binding){
+    if(!target)return;
+    for(const name of ['gameId','gamePk','gameStart','gameNumber','gameSavedAt']){
+      const value=binding?.[name];if(value!==undefined&&value!==null&&value!=='')target[name]=value;
+    }
+  }
+  function chooseOption(select,source){
+    if(!select||!source?.game)return;
+    const candidates=[...select.options].filter(option=>option.value===source.game);
+    if(!candidates.length)return;
+    let option=null;
+    if(source.gameId)option=candidates.find(candidate=>candidate.dataset.gameId===String(source.gameId));
+    if(!option&&source.gamePk)option=candidates.find(candidate=>candidate.dataset.gamePk===String(source.gamePk));
+    if(!option&&source.gameStart)option=candidates.find(candidate=>(candidate.dataset.gameStart||parseLabelStart(candidate.dataset.fullLabel||candidate.textContent,selectDate(select)))===source.gameStart);
+    const ordinal=Number(source.gameNumber);if(!option&&Number.isInteger(ordinal)&&ordinal>=1&&ordinal<=candidates.length)option=candidates[ordinal-1];
+    if(option)select.selectedIndex=[...select.options].indexOf(option);
+  }
+
+  const originalRender=window.renderOptions;
+  if(typeof originalRender==='function'&&!originalRender.__doubleheaderWrapped){
+    const wrapped=function(select,items,...args){const out=originalRender.call(this,select,items,...args);decorateOptions(select,items);return out};
+    wrapped.__doubleheaderWrapped=true;window.renderOptions=wrapped;
+  }
+
+  const originalRaw=window.rawTicket;
+  if(typeof originalRaw==='function'&&!originalRaw.__doubleheaderWrapped){
+    const wrapped=function(...args){
+      const ticket=originalRaw.apply(this,args),ticketSelect=document.getElementById('ticketGame');
+      applyBinding(ticket,bindingFor(ticketSelect));
+      const elements=typeof window.includedLegElements==='function'?window.includedLegElements():[...document.querySelectorAll('#legs>.leg')];
+      (ticket.legs||[]).forEach((leg,index)=>{const select=ticket.type==='parlay'?elements[index]?.querySelector('.lgame'):ticketSelect;applyBinding(leg,bindingFor(select))});
+      return ticket;
+    };
+    wrapped.__doubleheaderWrapped=true;window.rawTicket=wrapped;
+  }
+
+  function restoreRecord(record){
+    const ticket=record?.ticket||{};chooseOption(document.getElementById('ticketGame'),ticket);
+    const elements=[...document.querySelectorAll('#legs>.leg')];
+    elements.forEach((element,index)=>chooseOption(element.querySelector('.lgame'),ticket.legs?.[index]||ticket));
+    try{window.syncLegs?.()}catch{}try{window.preview?.()}catch{}
+  }
+  const originalLoad=window.loadRecordIntoBuilder;
+  if(typeof originalLoad==='function'&&!originalLoad.__doubleheaderWrapped){
+    const wrapped=function(record,...args){const out=originalLoad.call(this,record,...args);for(const delay of [0,120,500,1200,2400])setTimeout(()=>restoreRecord(record),delay);return out};
+    wrapped.__doubleheaderWrapped=true;window.loadRecordIntoBuilder=wrapped;
+  }
+
+  document.addEventListener('change',event=>{
+    const select=event.target.closest?.('#ticketGame,.lgame');if(!select)return;
+    decorateOptions(select,[]);
+    if(select.id==='ticketGame'){
+      const binding=bindingFor(select),value=select.value;
+      setTimeout(()=>document.querySelectorAll('#legs>.leg').forEach(leg=>{if(leg.dataset.ticketGameInherited!=='1')return;const child=leg.querySelector('.lgame');const source={game:value,...binding};chooseOption(child,source)}),0);
+    }
+  },true);
+})();
+'''
+          Path('doubleheader-game-binding.js').write_text(binding)
+
+          index=Path('index.html')
+          s=index.read_text()
+          old='<script src="./builder-behavior-fixes.js?v=82"><\\/script><script src="./game-display-fixes.js?v=82"><\\/script>'
+          new='<script src="./builder-behavior-fixes.js?v=82"><\\/script><script src="./game-display-fixes.js?v=82"><\\/script><script src="./doubleheader-game-binding.js?v=1"><\\/script>'
+          if s.count(old)!=1:
+              raise SystemExit('index.html: injection target mismatch')
+          s=s.replace(old,new,1)
+          s=s.replace('s.src="./actual-settlement-time.js?v=105"','s.src="./actual-settlement-time.js?v=120"')
+          s=s.replace("html=html.replace('./tracker-evaluator-v51.js?v=82','./tracker-evaluator-v51.js?v=95');","html=html.replace('./tracker-core-v51.js?v=82','./tracker-core-v51.js?v=120');\n    html=html.replace('./tracker-sources-v51.js?v=82','./tracker-sources-v51.js?v=120');\n    html=html.replace('./tracker-evaluator-v51.js?v=82','./tracker-evaluator-v51.js?v=120');")
+          index.write_text(s)
+
+          verifier=Path('scripts/verify-hosting-contract.mjs')
+          s=verifier.read_text()
+          target='"index.html","CNAME","manifest-gold-v1.json","library-backup.js",'
+          if target not in s:
+              raise SystemExit('hosting verifier required-list target mismatch')
+          verifier.write_text(s.replace(target,'"index.html","CNAME","manifest-gold-v1.json","library-backup.js","doubleheader-game-binding.js",',1))
+          PY
+
+      - name: Verify patch
+        shell: bash
+        run: |
+          node scripts/verify-hosting-contract.mjs
+          node --check tracker-core-v51.js
+          node --check tracker-sources-v51.js
+          node --check tracker-evaluator-v51.js
+          node --check actual-settlement-time.js
+          node --check pregame-status-correction.js
+          node --check doubleheader-game-binding.js
+          grep -q 'doubleheader-game-binding.js?v=1' index.html
+          grep -q 'return matches\[0\]' tracker-core-v51.js
+          ! grep -q "matches.find(g=>!isFinal(g))" tracker-core-v51.js
+
+      - name: Commit fix
+        shell: bash
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add index.html tracker-core-v51.js tracker-sources-v51.js tracker-evaluator-v51.js actual-settlement-time.js pregame-status-correction.js doubleheader-game-binding.js scripts/verify-hosting-contract.mjs
+          git commit -m "Bind tickets to specific doubleheader games"
+          git push
