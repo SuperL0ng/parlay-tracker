@@ -71,6 +71,7 @@ jobs:
           node --check actual-settlement-time.js
           node --check pregame-status-correction.js
           node --check doubleheader-game-binding.js
+          node scripts/test-doubleheader-game-binding.mjs
           grep -q 'doubleheader-game-binding.js?v=1' index.html
           grep -q 'return matches\[0\]' tracker-core-v51.js
           ! grep -q "matches.find(g=>!isFinal(g))" tracker-core-v51.js
