@@ -25,7 +25,7 @@ jobs:
           p=Path('scripts/prepare-app-cutover.sh')
           s=p.read_text()
           old="Path('scripts/verify-hosting-contract.mjs').write_text(verifier)"
-          new="Path('scripts/verify-hosting-contract.mjs').write_text(verifier.lstrip())"
+          new="Path('scripts/verify-hosting-contract.mjs').write_text(verifier.lstrip(chr(92)+'\\n\\r\\t '))"
           if old not in s:
             raise SystemExit('Verifier write contract not found')
           p.write_text(s.replace(old,new,1))
