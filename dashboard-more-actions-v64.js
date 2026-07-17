@@ -1,4 +1,4 @@
-/* DASHBOARD ACTIONS MENU V78 — separates ticket details from secondary actions */
+/* DASHBOARD ACTIONS MENU V79 — separates ticket details from secondary actions */
 (() => {
   'use strict';
 
@@ -14,7 +14,9 @@
       #ticketList .savedActions>.shareTicketBtn{display:none!important}
       #ticketList .savedActions.moreActionsEnabled{display:grid!important;width:100%!important;grid-template-columns:repeat(12,minmax(0,1fr))!important;gap:6px!important}
       #ticketList .savedActions.moreActionsEnabled>.savedActionView{grid-column:1/10!important;grid-row:1!important;height:34px!important;min-height:34px!important;padding:4px!important}
-      #ticketList .savedActions.moreActionsEnabled>.ticketDetailsAction{position:static!important;grid-column:10/13!important;grid-row:1!important;width:100%!important;min-width:0!important;height:34px!important;min-height:34px!important;padding:3px 4px!important;font-size:9px!important;line-height:1!important;letter-spacing:.04em!important;color:#26303B!important;background:linear-gradient(180deg,#E9EDF2,#C5CED9 55%,#8C98A8)!important;border-color:rgba(93,105,120,.46)!important}
+      #ticketList .savedActions.moreActionsEnabled>.ticketDetailsAction{position:static!important;display:flex!important;align-items:center!important;justify-content:center!important;box-sizing:border-box!important;overflow:visible!important;text-overflow:clip!important;grid-column:10/13!important;grid-row:1!important;width:100%!important;min-width:0!important;height:34px!important;min-height:34px!important;padding:3px 4px!important;font-size:9px!important;line-height:1!important;letter-spacing:.04em!important;color:#26303B!important;background:linear-gradient(180deg,#E9EDF2,#C5CED9 55%,#8C98A8)!important;border-color:rgba(93,105,120,.46)!important}
+      #ticketList .savedActions.moreActionsEnabled>.ticketDetailsAction .ticketExpandLong,#ticketList .savedActions.moreActionsEnabled>.ticketDetailsAction .ticketExpandShort{display:inline-block;max-width:none!important;overflow:visible!important;text-overflow:clip!important;white-space:nowrap!important}
+      #ticketList .savedActions.moreActionsEnabled>.ticketDetailsAction .ticketExpandShort{display:none}
       #ticketList .savedTicketTop>.savedActionsMoreToggle{position:absolute;top:0;right:0;z-index:22;width:84px;min-width:84px;height:32px;min-height:32px;padding:4px 5px;border-radius:8px;font-size:8px;font-weight:900;line-height:1;letter-spacing:.035em;text-transform:uppercase;white-space:nowrap;color:#26303B!important;background:linear-gradient(180deg,#E9EDF2,#C5CED9 55%,#8C98A8)!important;border-color:rgba(93,105,120,.46)!important}
       #ticketList .savedActionsMoreToggle .moreChevron{display:inline-block;margin-left:3px;font-size:11px;line-height:1;transition:transform .18s ease}
       #ticketList .savedActionsMoreToggle[aria-expanded="true"] .moreChevron{transform:rotate(180deg)}
@@ -22,7 +24,8 @@
       body>.savedActionsMenu.actionsMenuVisible{display:grid!important}
       body>.savedActionsMenu>.savedActionMenuItem{width:100%!important;min-width:0!important;min-height:38px!important;margin:0!important;padding:5px 3px!important;font-size:9px!important;line-height:1.08!important;letter-spacing:.02em!important;white-space:normal!important}
       @media(min-width:600px){#ticketList .savedTicketTop>.savedActionsMoreToggle{font-size:9px}body>.savedActionsMenu>.savedActionMenuItem{font-size:10px!important}}
-      @media(max-width:390px){#ticketList .savedActions.moreActionsEnabled{gap:5px!important}#ticketList .savedActions.moreActionsEnabled>.ticketDetailsAction{font-size:8px!important;padding:3px!important}#ticketList .savedTicketTop>.savedActionsMoreToggle{width:80px;min-width:80px;padding:4px;font-size:7.5px}body>.savedActionsMenu>.savedActionMenuItem{font-size:8.5px!important}}
+      @media(max-width:390px){#ticketList .savedActions.moreActionsEnabled{gap:5px!important}#ticketList .savedActions.moreActionsEnabled>.ticketDetailsAction{font-size:8px!important;padding:3px 2px!important;letter-spacing:.02em!important}#ticketList .savedTicketTop>.savedActionsMoreToggle{width:80px;min-width:80px;padding:4px;font-size:7.5px}body>.savedActionsMenu>.savedActionMenuItem{font-size:8.5px!important}}
+      @media(max-width:340px){#ticketList .savedActions.moreActionsEnabled>.ticketDetailsAction .ticketExpandLong{display:none!important}#ticketList .savedActions.moreActionsEnabled>.ticketDetailsAction .ticketExpandShort{display:inline-block!important}}
     `;
     document.head.appendChild(style);
   }
