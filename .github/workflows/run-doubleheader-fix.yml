@@ -31,7 +31,10 @@ jobs:
           lines=source[start:end]
           prefix='          '
           extracted=[line[len(prefix):] if line.startswith(prefix) else line for line in lines]
-          Path('/tmp/apply-doubleheader-fix.py').write_text('\n'.join(extracted)+'\n')
+          script='\n'.join(extracted)+'\n'
+          script=script.replace("s,count=re.subn(pattern,replacement+\"\\n\\n  function basketballPath\",s,count=1,flags=re.S)","s,count=re.subn(pattern,lambda _m: replacement+\"\\n\\n  function basketballPath\",s,count=1,flags=re.S)")
+          script=script.replace("s,count=re.subn(pattern,basketball+\"\\n\\n  function basketballPlays\",s,count=1,flags=re.S)","s,count=re.subn(pattern,lambda _m: basketball+\"\\n\\n  function basketballPlays\",s,count=1,flags=re.S)")
+          Path('/tmp/apply-doubleheader-fix.py').write_text(script)
           PY
             python3 /tmp/apply-doubleheader-fix.py > /tmp/doubleheader-patch.log 2>&1
             status=$?
