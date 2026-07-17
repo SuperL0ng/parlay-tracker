@@ -1,9 +1,8 @@
 name: Post-cutover verification
 
 on:
-  push:
-    paths:
-      - .github/workflows/post-cutover-verification.yml
+  pull_request:
+    types: [opened, reopened, synchronize]
   workflow_dispatch:
 
 permissions:
