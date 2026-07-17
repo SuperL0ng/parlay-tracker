@@ -1,0 +1,62 @@
+name: Verify live doubleheader binding
+
+on:
+  push:
+    paths:
+      - .github/workflows/verify-doubleheader-live.yml
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify both live domains
+        shell: bash
+        run: |
+          set -euo pipefail
+          verify_domain(){
+            domain="$1"
+            dir="/tmp/${domain//./-}"
+            mkdir -p "$dir"
+            passed=0
+            for attempt in $(seq 1 30); do
+              nonce="$(date +%s)-$attempt"
+              if curl -fsSL --max-time 30 "https://$domain/?verify=$nonce" -o "$dir/index.html" \
+                && curl -fsSL --max-time 30 "https://$domain/tracker-core-v51.js?v=120&verify=$nonce" -o "$dir/tracker-core-v51.js" \
+                && curl -fsSL --max-time 30 "https://$domain/doubleheader-game-binding.js?v=1&verify=$nonce" -o "$dir/doubleheader-game-binding.js" \
+                && curl -fsSL --max-time 30 "https://$domain/actual-settlement-time.js?v=120&verify=$nonce" -o "$dir/actual-settlement-time.js" \
+                && grep -q 'doubleheader-game-binding.js?v=1' "$dir/index.html" \
+                && grep -q 'function gameId' "$dir/tracker-core-v51.js" \
+                && ! grep -q 'matches.find(g=>!isFinal(g))' "$dir/tracker-core-v51.js" \
+                && grep -q 'DOUBLEHEADER GAME BINDING V1' "$dir/doubleheader-game-binding.js" \
+                && grep -q 'chooseInstance' "$dir/actual-settlement-time.js"; then
+                passed=1
+                break
+              fi
+              sleep 10
+            done
+            test "$passed" = 1
+            node - "$dir/tracker-core-v51.js" "$domain" <<'NODE'
+          const fs=require('node:fs');
+          const vm=require('node:vm');
+          const file=process.argv[2],domain=process.argv[3];
+          global.window=global;
+          vm.runInThisContext(fs.readFileSync(file,'utf8'),{filename:file});
+          const C=global.ParlayTrackerCore;
+          const competitor=(abbr)=>({team:{abbreviation:abbr},score:'0'});
+          const game=(id,date,state,completed=false)=>({id,date,__sport:'mlb',status:{type:{state,completed}},competitions:[{competitors:[competitor('TB'),competitor('BOS')]}]});
+          const first=game('game-1','2026-07-17T17:36:00Z','post',true);
+          const second=game('game-2','2026-07-17T23:10:00Z','pre',false);
+          const games=[first,second],base={date:'20260717',league:'MLB',game:'TB@BOS'};
+          const assert=(condition,message)=>{if(!condition)throw new Error(`${domain}: ${message}`)};
+          assert(C.findGame(games,'TB@BOS',base,{})===first,'final Game 1 switched to upcoming Game 2');
+          assert(C.findGame(games,'TB@BOS',{...base,gameNumber:2},{})===second,'Game 2 ordinal failed');
+          assert(C.findGame(games,'TB@BOS',{...base,gameId:'game-2'},{})===second,'event ID failed');
+          assert(C.findGame(games,'TB@BOS',{...base,__recordReferenceTime:'2026-07-17T17:00:00Z'},{})===first,'legacy Game 1 fallback failed');
+          console.log(`${domain}: live doubleheader regression passed`);
+          NODE
+          }
+          verify_domain simonsports.bet
+          verify_domain simonsportsbetting.com
