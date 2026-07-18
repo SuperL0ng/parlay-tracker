@@ -1,0 +1,63 @@
+name: Apply dashboard ticket binding V5
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    paths:
+      - .dashboard-binding-v5-trigger
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+      - name: Finalize V5 binding
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          script=Path('show-legs-label-fix.js')
+          text=script.read_text()
+          text=text.replace('DASHBOARD TICKET ID BINDING V4','DASHBOARD TICKET ID BINDING V5',1)
+          old="""    selectedIds.clear();
+    window.renderTicketDashboard?.();
+    setTimeout(repairDashboard,0);"""
+          new="""    selectedIds.clear();
+    const selectButton=document.getElementById('ticketSelectModeBtn');
+    if(document.body.classList.contains('ticketSelectMode')){
+      if(selectButton)selectButton.click();
+      else document.body.classList.remove('ticketSelectMode');
+    }
+    window.renderTicketDashboard?.();
+    setTimeout(repairDashboard,0);"""
+          if old not in text:
+              raise SystemExit('delete-selected target not found')
+          script.write_text(text.replace(old,new,1))
+
+          index=Path('index.html')
+          html=index.read_text()
+          old_key='./show-legs-label-fix.js?v=4'
+          new_key='./show-legs-label-fix.js?v=5'
+          if html.count(old_key)!=1:
+              raise SystemExit(f'expected one app V4 cache key, found {html.count(old_key)}')
+          index.write_text(html.replace(old_key,new_key,1))
+          PY
+          node --check show-legs-label-fix.js
+          grep -q 'DASHBOARD TICKET ID BINDING V5' show-legs-label-fix.js
+          grep -q "selectButton.click" show-legs-label-fix.js
+          grep -q 'show-legs-label-fix.js?v=5' index.html
+      - name: Commit V5 repair
+        shell: bash
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add show-legs-label-fix.js index.html
+          git commit -m "Finalize dashboard ticket ID binding V5"
+          git push origin HEAD:${{ github.head_ref }}
