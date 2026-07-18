@@ -1,0 +1,93 @@
+name: Retrospective completion audit
+
+on:
+  push:
+    branches:
+      - agent/canonical-app-architecture
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out audited branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Verify branch isolation
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          git diff --name-only origin/main...HEAD | tee /tmp/changed-files.txt
+          while IFS= read -r path; do
+            case "$path" in
+              app/*|architecture/*|scripts/*|package.json|.github/workflows/retrospective-completion-audit.yml) ;;
+              *) echo "Unexpected path outside replacement architecture: $path" >&2; exit 1 ;;
+            esac
+          done < /tmp/changed-files.txt
+
+      - name: Run canonical static gates
+        run: npm test
+
+      - name: Verify required source inventory
+        shell: bash
+        run: |
+          set -euo pipefail
+          required=(
+            app/src/index.template.html
+            app/src/scripts/storage.js
+            app/src/scripts/app-controller.js
+            app/src/scripts/bootstrap.js
+            app/src/scripts/builder-controller.js
+            app/src/scripts/catalog.js
+            app/src/scripts/dashboard-controller.js
+            app/src/scripts/tracker-core.js
+            app/src/scripts/tracker-sources.js
+            app/src/scripts/tracker-evaluator.js
+            app/src/scripts/tracker-service.js
+            app/src/scripts/settlement-service.js
+            app/src/scripts/sharing-controller.js
+            app/src/scripts/ticket-view-controller.js
+            app/src/styles/app.css
+            app/src/styles/dashboard.css
+            app/config/builds.json
+            scripts/build-static.mjs
+            scripts/check-syntax.mjs
+            scripts/verify-architecture.mjs
+            package.json
+          )
+          for path in "${required[@]}"; do test -f "$path" || { echo "Missing required source: $path" >&2; exit 1; }; done
+
+      - name: Produce source manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p audit-evidence
+          git rev-parse HEAD > audit-evidence/branch-head.txt
+          git rev-parse origin/main > audit-evidence/main-head.txt
+          cp /tmp/changed-files.txt audit-evidence/changed-files.txt
+          find app/src app/config architecture scripts -type f -print0 | sort -z | xargs -0 sha256sum > audit-evidence/source-sha256.txt
+          sha256sum package.json >> audit-evidence/source-sha256.txt
+          find build -type f -print0 | sort -z | xargs -0 sha256sum > audit-evidence/build-sha256.txt
+          printf 'Static gates passed at %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > audit-evidence/result.txt
+
+      - name: Upload audit evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: retrospective-completion-audit-evidence
+          path: audit-evidence
+          if-no-files-found: error
+          retention-days: 30
