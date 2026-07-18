@@ -1,0 +1,45 @@
+name: Verify live dashboard ticket binding V4
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    paths:
+      - .verify-dashboard-binding-v4
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify both custom domains
+        shell: bash
+        run: |
+          set -euo pipefail
+          verify_domain(){
+            domain="$1"
+            dir="/tmp/${domain//./-}"
+            mkdir -p "$dir"
+            ok=0
+            for attempt in $(seq 1 36); do
+              nonce="$(date +%s)-$attempt"
+              if curl -fsSL --max-time 30 "https://$domain/?verify=$nonce" -o "$dir/index.html" \
+                && curl -fsSL --max-time 30 "https://$domain/show-legs-label-fix.js?v=4&verify=$nonce" -o "$dir/binding.js" \
+                && grep -q 'show-legs-label-fix.js?v=4' "$dir/index.html" \
+                && grep -q 'DASHBOARD TICKET ID BINDING V4' "$dir/binding.js" \
+                && grep -q 'function bindCheckbox' "$dir/binding.js" \
+                && grep -q 'function deleteSelected' "$dir/binding.js" \
+                && grep -q 'function repairStandaloneStamps' "$dir/binding.js" \
+                && grep -q 'function stableId' "$dir/binding.js" \
+                && node --check "$dir/binding.js"; then
+                ok=1
+                break
+              fi
+              sleep 10
+            done
+            test "$ok" = 1
+            echo "$domain: live V4 dashboard binding verified"
+          }
+          verify_domain simonsports.bet
+          verify_domain simonsportsbetting.com
