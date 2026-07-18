@@ -37,6 +37,6 @@ assert.ok(Object.isFrozen(C),'The exported catalog must be frozen');
 assert.ok(Object.isFrozen(C.TYPES),'The type registry must be frozen');
 assert.ok(Object.isFrozen(C.TYPES.MLB),'Nested market arrays must be frozen');
 assert.ok(Object.isFrozen(C.TEAM_NAMES.WC),'Nested team maps must be frozen');
-assert.throws(()=>C.TYPES.MLB.push('tamper'),TypeError,'Consumers must not be able to mutate shared market definitions');
+assert.throws(()=>C.TYPES.MLB.push('tamper'),error=>error?.name==='TypeError','Consumers must not be able to mutate shared market definitions');
 
 console.log('Catalog contract verified.');

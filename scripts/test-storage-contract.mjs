@@ -56,4 +56,10 @@ assert.equal(S.remove('single-id'),1,'A scalar string ID must be treated as one 
 assert.equal(S.find('single-id'),null,'Scalar removal must remove the intended record');
 assert.equal(S.remove(null),0,'Removing no IDs must be a no-op');
 
+S.save([{id:'duplicate-id',ticket:{title:'Existing'},canonical:{title:'Existing'},status:'active'}]);
+const inserted=S.upsert({ticket:{title:'New'},canonical:{title:'New'},status:'active'});
+assert.equal(inserted.id,'duplicate-id-1','A generated ID collision must be resolved without overwriting an existing ticket');
+assert.equal(S.load().length,2,'Generated ID collisions must preserve both tickets');
+assert.equal(S.find('duplicate-id').ticket.title,'Existing','Generated ID collisions must not replace the existing ticket');
+
 console.log('Storage contract verified.');

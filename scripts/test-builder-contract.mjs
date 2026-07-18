@@ -75,6 +75,11 @@ assert.equal(duplicateSelect.value,'','Team-first auto-selection must not choose
 const uniqueSelect=new FakeSelect([emptyOption(),new FakeOption('TB@BOS','Only game',{gameId:'g1'}),new FakeOption('NYY@TOR','Other',{gameId:'g3'}),new FakeOption(C.MANUAL,'Manual')]);builder.$=id=>id==='ticketGame'?uniqueSelect:null;
 builder.selectGameForTeam({},'TB');assert.equal(uniqueSelect.value,'TB@BOS','Team-first auto-selection must select a unique matching game');
 
+const ambiguousInput={value:'',classList:new FakeClassList('hide')};duplicateSelect.value='';
+assert.equal(builder.restoreGameSelection(duplicateSelect,ambiguousInput,{game:'TB@BOS'}),true,'Ambiguous saved games must be preserved for review');
+assert.equal(duplicateSelect.value,C.MANUAL,'An ambiguous saved game must not silently bind to Game 1');
+assert.equal(ambiguousInput.value,'TB@BOS','An ambiguous saved game must retain its original game code');
+
 const ticketSelect=new FakeSelect([emptyOption(),new FakeOption('TB@BOS','Game 1',{gameId:'g1',gameStart:'20260718T1236'}),new FakeOption('TB@BOS','Game 2',{gameId:'g2',gameStart:'20260718T1910'}),new FakeOption(C.MANUAL,'Manual')]);ticketSelect.selectedIndex=2;
 const manualInput={value:'',classList:new FakeClassList('hide')},dateInput={value:'2026-07-18'};
 builder.$=id=>({ticketGame:ticketSelect,ticketGameManual:manualInput,date:dateInput}[id]);builder.league=()=> 'MLB';builder.ticketType=()=> 'sgp';builder.gamesFor=async()=>[{value:'TB@BOS',label:'Game 1',gameId:'g1',gameStart:'2026-07-18T17:36:00Z'},{value:'TB@BOS',label:'Game 2',gameId:'g2',gameStart:'2026-07-18T23:10:00Z'}];builder.apiStatus=()=>{};builder.legs=()=>[];
@@ -92,6 +97,12 @@ assert.equal(datedSelect.options.find(option=>option.value==='ATL@STL').dataset.
 const typeSelect=new FakeSelect(),typeLeg={querySelector:selector=>selector==='.ltype'?typeSelect:null};builder.legLeague=()=> 'MLB';
 builder.populateTypes(typeLeg,'future_market');
 assert.equal(typeSelect.value,'future_market','Loading an unknown saved market must preserve it instead of silently substituting another type');
+
+const unknownTargetSelect=new FakeSelect([new FakeOption('','Select target')]),unknownCustom={value:'',classList:new FakeClassList('hide')},unknownTypeSelect=new FakeSelect([new FakeOption('future_market','Unsupported')]);
+const unknownLeg={querySelector:selector=>({'.ltype':unknownTypeSelect,'.targetSelect':unknownTargetSelect,'.targetCustom':unknownCustom}[selector]||null)};
+builder.setTarget(unknownLeg,'7.5');
+assert.equal(unknownTargetSelect.value,C.MANUAL,'An unknown saved market must retain a custom target channel');
+assert.equal(builder.targetValue(unknownLeg),'7.5','An unknown saved market must preserve its original target');
 
 let rawCalls=0;builder.rawTicket=()=>({...sgp,gameSavedAt:`snapshot-${++rawCalls}`,legs:sgp.legs.map(leg=>({...leg,gameSavedAt:`snapshot-${rawCalls}`}))});builder.$=id=>({sportsbook:{value:''},ticketStatus:{value:'active'}}[id]);builder.storage={makeId:()=> 'new-id'};
 const record=builder.recordFromBuilder();
