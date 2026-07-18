@@ -1,10 +1,10 @@
 (() => {
   'use strict';
   class TicketViewController{
-    constructor({storage,tracker}){this.storage=storage;this.tracker=tracker;this.root=document.getElementById('standaloneView');this.mode=null;this.started=false;this.routeVersion=0;this.refreshVersion=0;this.onClick=this.onClick.bind(this);this.onUpdated=this.onUpdated.bind(this)}
+    constructor({storage,tracker}){this.storage=storage;this.tracker=tracker;this.root=document.getElementById('standaloneView');this.mode=null;this.started=false;this.routeVersion=0;this.refreshVersion=0;this.onClick=this.onClick.bind(this);this.onUpdated=this.onUpdated.bind(this);this.onStorage=this.onStorage.bind(this)}
     clean(value){return String(value??'').trim()} esc(value){return String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]))} stamp(value){const date=new Date(value||'');return Number.isNaN(date.getTime())?'':date.toLocaleString([],{year:'numeric',month:'numeric',day:'numeric',hour:'numeric',minute:'2-digit'})}
-    start(){if(this.started)return this;this.started=true;this.root.addEventListener('click',this.onClick);window.addEventListener('parlay:tracker-updated',this.onUpdated);return this}
-    stop(){if(!this.started)return;this.root.removeEventListener('click',this.onClick);window.removeEventListener('parlay:tracker-updated',this.onUpdated);this.deactivate();this.started=false}
+    start(){if(this.started)return this;this.started=true;this.root.addEventListener('click',this.onClick);window.addEventListener('parlay:tracker-updated',this.onUpdated);window.addEventListener('storage',this.onStorage);window.addEventListener('parlay:storage-changed',this.onStorage);return this}
+    stop(){if(!this.started)return;this.root.removeEventListener('click',this.onClick);window.removeEventListener('parlay:tracker-updated',this.onUpdated);window.removeEventListener('storage',this.onStorage);window.removeEventListener('parlay:storage-changed',this.onStorage);this.deactivate();this.started=false}
     parseHash(){const params=new URLSearchParams(location.hash.slice(1)),id=params.get('ticket'),active=params.get('view')==='active';return id?{kind:'ticket',id}:active?{kind:'active'}:null}
     modeKey(mode=this.mode){return mode?.kind==='ticket'?`ticket:${String(mode.id)}`:mode?.kind==='active'?'active':''}
     records(){const list=this.storage.load();if(this.mode?.kind==='ticket')return list.filter(record=>String(record.id)===String(this.mode.id));if(this.mode?.kind==='active')return list.filter(record=>this.clean(record.status).toLowerCase()!=='completed');return[]}
@@ -18,6 +18,7 @@
     }
     onClick(event){const action=event.target.closest('[data-view-action]')?.dataset.viewAction;if(action==='refresh')void this.refresh();if(action==='close'){window.close();if(!window.closed)this.leave()}}
     onUpdated(event){if(!this.mode)return;const ids=Array.isArray(event?.detail?.ids)?new Set(event.detail.ids.map(String)):null;if(ids&&this.mode.kind==='ticket'&&!ids.has(String(this.mode.id)))return;this.render()}
+    onStorage(event){if(!this.mode)return;const key=event?.key||event?.detail?.key;if(key&&key!==this.storage.KEY)return;this.render()}
   }
   window.TicketViewController=TicketViewController;
 })();
