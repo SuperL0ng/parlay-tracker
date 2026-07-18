@@ -1,0 +1,81 @@
+name: Repair dashboard ticket binding
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    paths:
+      - .ticket-id-binding-fix-trigger
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - name: Repair record-to-card binding
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path, old, new):
+            p=Path(path)
+            s=p.read_text()
+            if s.count(old)!=1:
+              raise SystemExit(f'{path}: expected one target, found {s.count(old)}')
+            p.write_text(s.replace(old,new,1))
+
+          replace_once(
+            'ticket-dashboard-details-v54.js',
+            """    const cards=[...document.querySelectorAll('#ticketList .savedTicket')];
+    cards.forEach((card,index)=>{
+      const record=records[index];if(!record)return;
+      card.dataset.ticketId=record.id;""",
+            """    const cards=[...document.querySelectorAll('#ticketList .savedTicket')],recordsById=new Map(records.map(record=>[String(record.id||''),record]));
+    cards.forEach((card,index)=>{
+      const existingId=String(card.dataset.ticketId||'');
+      const record=(existingId&&recordsById.get(existingId))||records[index];if(!record)return;
+      if(!existingId||!recordsById.has(existingId))card.dataset.ticketId=record.id;"""
+          )
+
+          replace_once(
+            'actual-settlement-time.js',
+            """    const records=id?list.filter(r=>r.id===id):active?list.filter(r=>r.status!=='completed'||document.querySelector('.liveTicketCard')):[];
+    [...document.querySelectorAll('#standaloneView .liveTicketCard')].forEach((card,i)=>{
+      const r=records[i];card.querySelector('.settlementStamp')?.remove();if(!r?.settledAt)return;""",
+            """    const records=id?list.filter(r=>r.id===id):active?list.filter(r=>r.status!=='completed'):[];
+    const recordsById=new Map(records.map(record=>[String(record.id||''),record]));
+    [...document.querySelectorAll('#standaloneView .liveTicketCard')].forEach((card,i)=>{
+      const cardId=String(card.dataset.ticketId||''),r=(cardId&&recordsById.get(cardId))||records[i];card.querySelector('.settlementStamp')?.remove();if(!r?.settledAt)return;"""
+          )
+
+          replace_once('index.html','s.src="./actual-settlement-time.js?v=120"','s.src="./actual-settlement-time.js?v=122"')
+          replace_once('index.html',"html=html.replace('./ticket-dashboard-details-v54.js?v=82','./ticket-dashboard-details-v54.js?v=112');","html=html.replace('./ticket-dashboard-details-v54.js?v=82','./ticket-dashboard-details-v54.js?v=122');")
+          PY
+
+      - name: Verify repair
+        shell: bash
+        run: |
+          node --check ticket-dashboard-details-v54.js
+          node --check actual-settlement-time.js
+          node scripts/verify-hosting-contract.mjs
+          grep -q 'existingId&&recordsById.get(existingId)' ticket-dashboard-details-v54.js
+          grep -q "active?list.filter(r=>r.status!=='completed'):[]" actual-settlement-time.js
+          grep -q 'cardId&&recordsById.get(cardId)' actual-settlement-time.js
+          grep -q 'actual-settlement-time.js?v=122' index.html
+          grep -q 'ticket-dashboard-details-v54.js?v=122' index.html
+
+      - name: Commit repair
+        shell: bash
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add ticket-dashboard-details-v54.js actual-settlement-time.js index.html
+          git commit -m "Bind dashboard cards and stamps by ticket ID"
+          git push origin HEAD:${{ github.head_ref }}
