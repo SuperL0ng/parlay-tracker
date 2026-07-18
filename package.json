@@ -6,8 +6,9 @@
     "check:syntax": "node scripts/check-syntax.mjs",
     "build": "node scripts/build-static.mjs",
     "verify:architecture": "node scripts/verify-architecture.mjs",
+    "test:components": "node scripts/test-storage-contract.mjs && node scripts/test-catalog-contract.mjs && node scripts/test-builder-contract.mjs",
     "test:regressions": "node scripts/test-canonical-doubleheader-binding.mjs && node scripts/test-canonical-ticket-id-binding.mjs && node scripts/test-canonical-action-menu-lifecycle.mjs",
     "verify:hosting": "node scripts/verify-canonical-hosting-contract.mjs",
-    "test": "npm run check:syntax && npm run build && npm run verify:architecture && npm run test:regressions && npm run verify:hosting"
+    "test": "npm run check:syntax && npm run build && npm run verify:architecture && npm run test:components && npm run test:regressions && npm run verify:hosting"
   }
 }
