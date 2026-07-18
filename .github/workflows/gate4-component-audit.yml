@@ -1,0 +1,78 @@
+name: Gate 4 component audit
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out exact audited commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Record exact head and isolation
+        run: |
+          set -euo pipefail
+          git rev-parse HEAD | tee gate4-head.txt
+          git rev-parse origin/main | tee gate4-main-head.txt
+          git diff --name-only origin/main...HEAD | tee gate4-changed-paths.txt
+          bad="$(git diff --name-only origin/main...HEAD | grep -Ev '^(app/|scripts/|architecture/|package.json$|\.github/workflows/gate4-component-audit\.yml$)' || true)"
+          test -z "$bad"
+      - name: Run current canonical suite
+        run: npm test
+      - name: Produce Gate 4 source manifest
+        run: |
+          sha256sum \
+            app/src/index.template.html \
+            app/src/scripts/storage.js \
+            app/src/scripts/builder-controller.js \
+            app/src/scripts/sharing-controller.js \
+            app/src/scripts/ticket-view-controller.js \
+            app/src/scripts/dashboard-controller.js \
+            app/src/scripts/app-controller.js \
+            app/src/scripts/bootstrap.js \
+            app/src/styles/app.css \
+            app/src/styles/dashboard.css \
+            package.json > gate4-source-sha256.txt
+      - name: Upload Gate 4 exact source evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: gate4-source-evidence
+          retention-days: 90
+          path: |
+            gate4-head.txt
+            gate4-main-head.txt
+            gate4-changed-paths.txt
+            gate4-source-sha256.txt
+            app/src/index.template.html
+            app/src/scripts/storage.js
+            app/src/scripts/catalog.js
+            app/src/scripts/tracker-core.js
+            app/src/scripts/tracker-sources.js
+            app/src/scripts/tracker-evaluator.js
+            app/src/scripts/settlement-service.js
+            app/src/scripts/tracker-service.js
+            app/src/scripts/builder-controller.js
+            app/src/scripts/sharing-controller.js
+            app/src/scripts/ticket-view-controller.js
+            app/src/scripts/dashboard-controller.js
+            app/src/scripts/app-controller.js
+            app/src/scripts/bootstrap.js
+            app/src/styles/app.css
+            app/src/styles/dashboard.css
+            app/config/builds.json
+            package.json
+            scripts
+          if-no-files-found: error
