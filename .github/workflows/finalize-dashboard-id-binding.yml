@@ -1,0 +1,74 @@
+name: Finalize dashboard ticket ID binding
+
+on:
+  push:
+    paths:
+      - .github/workflows/finalize-dashboard-id-binding.yml
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Patch cache keys and settlement binding
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path, old, new):
+              p=Path(path)
+              text=p.read_text()
+              count=text.count(old)
+              if count!=1:
+                  raise SystemExit(f'{path}: expected one match, found {count}')
+              p.write_text(text.replace(old,new,1))
+
+          replace_once(
+              'actual-settlement-time.js',
+              """    const records=id?list.filter(r=>r.id===id):active?list.filter(r=>r.status!=='completed'||document.querySelector('.liveTicketCard')):[];
+    [...document.querySelectorAll('#standaloneView .liveTicketCard')].forEach((card,i)=>{
+      const r=records[i];card.querySelector('.settlementStamp')?.remove();if(!r?.settledAt)return;""",
+              """    const records=id?list.filter(r=>r.id===id):active?list.filter(r=>r.status!=='completed'):[];
+    const recordsById=new Map(records.map(record=>[String(record.id||''),record]));
+    [...document.querySelectorAll('#standaloneView .liveTicketCard')].forEach(card=>{
+      const r=recordsById.get(String(card.dataset.ticketId||''));card.querySelector('.settlementStamp')?.remove();if(!r?.settledAt)return;"""
+          )
+
+          p=Path('index.html')
+          text=p.read_text()
+          for old,new in [
+              ('s.src="./actual-settlement-time.js?v=120"','s.src="./actual-settlement-time.js?v=123"'),
+              ('<script src="./show-legs-label-fix.js?v=3"><\\/script>','<script src="./show-legs-label-fix.js?v=4"><\\/script>')
+          ]:
+              if text.count(old)!=1:
+                  raise SystemExit(f'index.html: expected one {old!r}, found {text.count(old)}')
+              text=text.replace(old,new,1)
+          p.write_text(text)
+          PY
+
+      - name: Verify final repair
+        shell: bash
+        run: |
+          node --check show-legs-label-fix.js
+          node --check actual-settlement-time.js
+          node scripts/verify-hosting-contract.mjs
+          grep -q 'DASHBOARD TICKET ID BINDING V4' show-legs-label-fix.js
+          grep -q 'recordsById.get(String(card.dataset.ticketId' actual-settlement-time.js
+          grep -q 'actual-settlement-time.js?v=123' index.html
+          grep -q 'show-legs-label-fix.js?v=4' index.html
+
+      - name: Commit final repair
+        shell: bash
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add actual-settlement-time.js index.html
+          git commit -m "Finalize dashboard ticket ID binding"
+          git push
