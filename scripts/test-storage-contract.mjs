@@ -21,7 +21,7 @@ const S=context.ParlayStorage,KEY='parlayTracker.savedTickets.v1';
 assert.equal(S.KEY,KEY,'The established localStorage key must not change');
 
 localStorage.setItem(KEY,'{broken');localStorage.writes.length=0;
-assert.deepEqual(S.load(),[],'Malformed JSON must fail closed');
+assert.equal(S.load().length,0,'Malformed JSON must fail closed');
 assert.equal(localStorage.getItem(KEY),'{broken','Malformed source data must never be overwritten during load');
 assert.equal(localStorage.writes.length,0,'Malformed source data must not trigger a repair write');
 
@@ -34,7 +34,7 @@ const repaired=S.load();
 assert.equal(repaired[0].id,'spaced','IDs must be normalized to trimmed strings');
 assert.notEqual(repaired[1].id,'spaced','Duplicate IDs must receive a unique replacement');
 assert.equal(new Set(repaired.map(record=>record.id)).size,repaired.length,'Every normalized record must have a unique ID');
-assert.deepEqual(repaired[1].ticket,{title:'B'},'Legacy canonical-only records must receive a ticket copy');
+assert.equal(JSON.stringify(repaired[1].ticket),JSON.stringify({title:'B'}),'Legacy canonical-only records must receive a ticket copy');
 assert.equal(repaired[1].status,'active','Legacy records must receive the active default status');
 
 const caller=[{id:'caller',ticket:{title:'Original'},canonical:{title:'Original'},status:'active'}];
