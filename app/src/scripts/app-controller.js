@@ -19,9 +19,9 @@
       window.addEventListener('hashchange',this.route);this.route();
     }
     async route(){if(this.sharing.consumeHash(),await this.viewer.enterFromHash())return;this.showDashboard(false)}
-    showDashboard(capture=true){if(capture)this.builder.captureDraft();this.$('builderView').classList.add('hide');this.$('standaloneView').classList.add('hide');this.$('dashboardView').classList.remove('hide');this.$('appTabs').classList.remove('hide');this.$('ticketsTab').classList.add('active');this.$('builderTab').classList.remove('active');this.dashboard.render();window.scrollTo({top:0,behavior:'smooth'})}
-    showBuilder(){this.$('builderView').classList.remove('hide');this.$('dashboardView').classList.add('hide');this.$('standaloneView').classList.add('hide');this.$('appTabs').classList.remove('hide');this.$('builderTab').classList.add('active');this.$('ticketsTab').classList.remove('active');window.scrollTo({top:0,behavior:'smooth'})}
-    showStandalone(){this.$('builderView').classList.add('hide');this.$('dashboardView').classList.add('hide');this.$('standaloneView').classList.remove('hide');this.$('appTabs').classList.add('hide');window.scrollTo({top:0})}
+    showDashboard(capture=true){this.dashboard.closeOverlays();if(capture)this.builder.captureDraft();this.$('builderView').classList.add('hide');this.$('standaloneView').classList.add('hide');this.$('dashboardView').classList.remove('hide');this.$('appTabs').classList.remove('hide');this.$('ticketsTab').classList.add('active');this.$('builderTab').classList.remove('active');this.dashboard.render();window.scrollTo({top:0,behavior:'smooth'})}
+    showBuilder(){this.dashboard.closeOverlays();this.$('builderView').classList.remove('hide');this.$('dashboardView').classList.add('hide');this.$('standaloneView').classList.add('hide');this.$('appTabs').classList.remove('hide');this.$('builderTab').classList.add('active');this.$('ticketsTab').classList.remove('active');window.scrollTo({top:0,behavior:'smooth'})}
+    showStandalone(){this.dashboard.closeOverlays();this.$('builderView').classList.add('hide');this.$('dashboardView').classList.add('hide');this.$('standaloneView').classList.remove('hide');this.$('appTabs').classList.add('hide');window.scrollTo({top:0})}
     onEvent(event){
       const name=event.type.replace('parlay:',''),id=event.detail?.id;
       if(name==='show-builder'){this.showBuilder();return}
