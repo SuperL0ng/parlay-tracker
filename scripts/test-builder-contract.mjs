@@ -46,7 +46,7 @@ assert.equal(singleCanonical.legs[0].gameId,'nba-1','Parlay game-instance metada
 const mixed={...singleLeagueParlay,legs:[singleLeagueParlay.legs[0],{label:'Braves ML',type:'ml',league:'MLB',date:'20260718',game:'ATL@STL',team:'ATL'}]};builder.rawTicket=()=>mixed;
 const mixedCanonical=builder.canonicalTicket(mixed);
 assert.equal('league' in mixedCanonical,false,'A mixed-league parlay must not claim one ticket-level league');
-assert.deepEqual(mixedCanonical.legs.map(leg=>leg.league),['NBA','MLB'],'Mixed-league parlays must retain per-leg league ownership');
+assert.equal(JSON.stringify([...mixedCanonical.legs].map(leg=>leg.league)),JSON.stringify(['NBA','MLB']),'Mixed-league parlays must retain per-leg league ownership');
 
 const sgp={title:'+300',tracker:'parlay',date:'20260718',type:'sgp',league:'MLB',game:'ATL@STL',gameId:'mlb-1',gamePk:1,gameStart:'20260718T1900',gameSavedAt:'same',legs:[{label:'Braves ML',type:'ml',league:'MLB',date:'20260718',game:'ATL@STL',team:'ATL',gameId:'mlb-1',gamePk:1,gameStart:'20260718T1900',gameSavedAt:'same'}]};builder.rawTicket=()=>sgp;
 const sgpCanonical=builder.canonicalTicket(sgp);
@@ -57,7 +57,7 @@ const worldCup={...sgp,title:'+250',tracker:'worldcup',league:'WC',game:'ARG@ESP
 assert.equal(builder.canonicalTicket(worldCup).title,'＋250','World Cup positive odds must use the fullwidth plus character');
 
 const validSgp={title:'+100',date:'20260718',type:'sgp',league:'MLB',game:'ATL@STL',legs:[{label:'Player 1+ H',type:'player_hits',league:'MLB',date:'20260718',game:'ATL@STL',team:'ATL',player:'Player',target:1}]};
-assert.deepEqual(builder.validate(validSgp),[],'A complete SGP must validate');
+assert.equal(builder.validate(validSgp).length,0,'A complete SGP must validate');
 const invalid={title:'+100',date:'2026-07-18',type:'sgp',league:'MLB',game:'ATL@STL',legs:[
   {label:'Missing team',type:'player_hits',league:'MLB',date:'20260718',game:'ATL@STL',player:'Player',target:'abc'},
   {label:'Wrong team',type:'ml',league:'MLB',date:'20260718',game:'ATL@STL',team:'BOS'},
