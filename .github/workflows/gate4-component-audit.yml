@@ -1,6 +1,9 @@
 name: Gate 4 component audit
 
 on:
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
@@ -13,13 +16,80 @@ jobs:
       - name: Check out exact audited commit
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.sha }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 24
-      - name: Record exact head
-        run: git rev-parse HEAD
-      - name: Run current canonical suite
+      - name: Verify exact commit and branch isolation
+        run: |
+          set -euo pipefail
+          git rev-parse HEAD | tee gate4-head.txt
+          git rev-parse origin/main | tee gate4-main-head.txt
+          git diff --name-only origin/main...HEAD | tee gate4-changed-paths.txt
+          bad="$(git diff --name-only origin/main...HEAD | grep -Ev '^(app/|scripts/|architecture/|package.json$|\.github/workflows/gate4-component-audit\.yml$)' || true)"
+          test -z "$bad"
+      - name: Run pre-correction Gate 4 contracts
+        run: |
+          set +e
+          : > gate4-before-results.txt
+          for test in \
+            test-sharing-controller-contract.mjs \
+            test-ticket-view-controller-contract.mjs \
+            test-dashboard-controller-contract.mjs \
+            test-app-controller-contract.mjs \
+            test-bootstrap-contract.mjs \
+            test-controller-lifecycle-integration.mjs
+          do
+            node "scripts/$test" > "${test%.mjs}.log" 2>&1
+            rc=$?
+            printf '%s=%s\n' "$test" "$rc" | tee -a gate4-before-results.txt
+          done
+          set -e
+      - name: Prove every Gate 4 contract exposes an existing defect
+        run: |
+          set -euo pipefail
+          test "$(wc -l < gate4-before-results.txt)" -eq 6
+          if grep -Eq '=0$' gate4-before-results.txt; then
+            echo 'At least one Gate 4 contract unexpectedly passed before correction.' >&2
+            cat gate4-before-results.txt >&2
+            exit 1
+          fi
+      - name: Verify prior canonical suite still passes
         run: npm test
+      - name: Produce pre-correction evidence
+        if: always()
+        run: |
+          sha256sum \
+            app/src/scripts/builder-controller.js \
+            app/src/scripts/sharing-controller.js \
+            app/src/scripts/ticket-view-controller.js \
+            app/src/scripts/dashboard-controller.js \
+            app/src/scripts/app-controller.js \
+            app/src/scripts/bootstrap.js \
+            scripts/test-sharing-controller-contract.mjs \
+            scripts/test-ticket-view-controller-contract.mjs \
+            scripts/test-dashboard-controller-contract.mjs \
+            scripts/test-app-controller-contract.mjs \
+            scripts/test-bootstrap-contract.mjs \
+            scripts/test-controller-lifecycle-integration.mjs > gate4-before-sha256.txt
+      - name: Upload Gate 4 pre-correction evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gate4-before-corrections
+          retention-days: 90
+          path: |
+            gate4-head.txt
+            gate4-main-head.txt
+            gate4-changed-paths.txt
+            gate4-before-results.txt
+            gate4-before-sha256.txt
+            test-sharing-controller-contract.log
+            test-ticket-view-controller-contract.log
+            test-dashboard-controller-contract.log
+            test-app-controller-contract.log
+            test-bootstrap-contract.log
+            test-controller-lifecycle-integration.log
+          if-no-files-found: error
