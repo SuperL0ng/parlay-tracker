@@ -16,41 +16,36 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Patch cache keys and settlement binding
+      - name: Patch settlement binding and cache key
         shell: bash
         run: |
           python3 - <<'PY'
           from pathlib import Path
 
-          def replace_once(path, old, new):
-              p=Path(path)
-              text=p.read_text()
-              count=text.count(old)
-              if count!=1:
-                  raise SystemExit(f'{path}: expected one match, found {count}')
-              p.write_text(text.replace(old,new,1))
-
-          replace_once(
-              'actual-settlement-time.js',
-              """    const records=id?list.filter(r=>r.id===id):active?list.filter(r=>r.status!=='completed'||document.querySelector('.liveTicketCard')):[];
+          actual=Path('actual-settlement-time.js')
+          text=actual.read_text()
+          old="""    const records=id?list.filter(r=>r.id===id):active?list.filter(r=>r.status!=='completed'||document.querySelector('.liveTicketCard')):[];
     [...document.querySelectorAll('#standaloneView .liveTicketCard')].forEach((card,i)=>{
-      const r=records[i];card.querySelector('.settlementStamp')?.remove();if(!r?.settledAt)return;""",
-              """    const records=id?list.filter(r=>r.id===id):active?list.filter(r=>r.status!=='completed'):[];
+      const r=records[i];card.querySelector('.settlementStamp')?.remove();if(!r?.settledAt)return;"""
+          new="""    const records=id?list.filter(r=>r.id===id):active?list.filter(r=>r.status!=='completed'):[];
     const recordsById=new Map(records.map(record=>[String(record.id||''),record]));
     [...document.querySelectorAll('#standaloneView .liveTicketCard')].forEach(card=>{
       const r=recordsById.get(String(card.dataset.ticketId||''));card.querySelector('.settlementStamp')?.remove();if(!r?.settledAt)return;"""
-          )
-
-          p=Path('index.html')
-          text=p.read_text()
-          for old,new in [
-              ('s.src="./actual-settlement-time.js?v=120"','s.src="./actual-settlement-time.js?v=123"'),
-              ('<script src="./show-legs-label-fix.js?v=3"><\\/script>','<script src="./show-legs-label-fix.js?v=4"><\\/script>')
-          ]:
-              if text.count(old)!=1:
-                  raise SystemExit(f'index.html: expected one {old!r}, found {text.count(old)}')
+          if old in text:
               text=text.replace(old,new,1)
-          p.write_text(text)
+          elif new not in text:
+              raise SystemExit('actual-settlement-time.js: expected old or new settlement binding')
+          actual.write_text(text)
+
+          index=Path('index.html')
+          text=index.read_text()
+          if 's.src="./actual-settlement-time.js?v=120"' in text:
+              text=text.replace('s.src="./actual-settlement-time.js?v=120"','s.src="./actual-settlement-time.js?v=123"',1)
+          elif 's.src="./actual-settlement-time.js?v=123"' not in text:
+              raise SystemExit('index.html: settlement loader version not recognized')
+          if '<script src="./show-legs-label-fix.js?v=4"><\\/script>' not in text:
+              raise SystemExit('index.html: dashboard binding V4 loader missing')
+          index.write_text(text)
           PY
 
       - name: Verify final repair
@@ -67,6 +62,10 @@ jobs:
       - name: Commit final repair
         shell: bash
         run: |
+          if git diff --quiet; then
+            echo 'Final repair already present.'
+            exit 0
+          fi
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
           git add actual-settlement-time.js index.html
