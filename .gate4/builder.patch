@@ -1,0 +1,33 @@
+--- a/app/src/scripts/builder-controller.js
++++ b/app/src/scripts/builder-controller.js
+@@ -3,8 +3,8 @@
+   const API='https://script.google.com/macros/s/AKfycbzPrITdaAT9azpkORu3wDh9m-nQF1JyTfUjx58PDxbtjIcHZKk-7xCV9bwauTDQ6YKDHw/exec';
+   class BuilderController {
+     constructor({storage}){
+-      this.storage=storage;this.catalog=window.ParlayCatalog;this.games=new Map();this.players=new Map();this.legCounter=0;this.editingId='';this.draft=null;this.reorderMode=false;this.drag=null;this.hold=null;
+-      this.$=id=>document.getElementById(id);this.onBuilderChange=this.onBuilderChange.bind(this);this.onBuilderInput=this.onBuilderInput.bind(this);this.onClick=this.onClick.bind(this);this.onPointerDown=this.onPointerDown.bind(this);this.onPointerMove=this.onPointerMove.bind(this);this.onPointerEnd=this.onPointerEnd.bind(this);
++      this.storage=storage;this.catalog=window.ParlayCatalog;this.games=new Map();this.players=new Map();this.legCounter=0;this.editingId='';this.draft=null;this.reorderMode=false;this.drag=null;this.hold=null;this.started=false;this.ready=null;
++      this.$=id=>document.getElementById(id);this.onBuilderChange=this.onBuilderChange.bind(this);this.onBuilderInput=this.onBuilderInput.bind(this);this.onClick=this.onClick.bind(this);this.onPointerDown=this.onPointerDown.bind(this);this.onPointerMove=this.onPointerMove.bind(this);this.onPointerEnd=this.onPointerEnd.bind(this);this.onReorderClick=this.onReorderClick.bind(this);
+     }
+     clean(value){return String(value??'').trim()}
+     esc(value){return String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]))}
+@@ -26,11 +26,16 @@
+     }
+     apiStatus(message,className=''){const box=this.$('apiStatus');box.textContent=message;box.className=`status ${className}`}
+     start(){
+-      const view=this.$('builderView');view.addEventListener('change',this.onBuilderChange);view.addEventListener('input',this.onBuilderInput);view.addEventListener('click',this.onClick);
+-      this.$('reorderLegsBtn').addEventListener('click',()=>this.setReorderMode(!this.reorderMode));
++      if(this.started)return this;
++      this.started=true;const view=this.$('builderView');view.addEventListener('change',this.onBuilderChange);view.addEventListener('input',this.onBuilderInput);view.addEventListener('click',this.onClick);
++      this.$('reorderLegsBtn').addEventListener('click',this.onReorderClick);
+       this.$('legs').addEventListener('pointerdown',this.onPointerDown,{passive:true});document.addEventListener('pointermove',this.onPointerMove,{passive:false});document.addEventListener('pointerup',this.onPointerEnd,{passive:false});document.addEventListener('pointercancel',this.onPointerEnd,{passive:false});
+-      this.resetNew(false);
++      this.ready=Promise.resolve(this.resetNew(false)).then(()=>this).catch(error=>{if(this.started){this.apiStatus(error?.message||String(error),'bad');window.dispatchEvent(new CustomEvent('parlay:builder-error',{detail:{message:error?.message||String(error)}}))}return this});return this;
+     }
++    stop(){
++      if(!this.started)return;const view=this.$('builderView');view.removeEventListener('change',this.onBuilderChange);view.removeEventListener('input',this.onBuilderInput);view.removeEventListener('click',this.onClick);this.$('reorderLegsBtn').removeEventListener('click',this.onReorderClick);this.$('legs').removeEventListener('pointerdown',this.onPointerDown);document.removeEventListener('pointermove',this.onPointerMove);document.removeEventListener('pointerup',this.onPointerEnd);document.removeEventListener('pointercancel',this.onPointerEnd);this.cancelHold();this.drag=null;document.body?.classList?.remove('reorderDraggingActive','reorderMode');this.started=false;this.ready=null;
++    }
++    onReorderClick(){this.setReorderMode(!this.reorderMode)}
+     async resetNew(show=true){
+       this.editingId='';this.draft=null;this.legCounter=0;this.reorderMode=false;this.$('tracker').value='parlay';this.$('ticketType').value='sgp';this.$('ticketLeague').value='MLB';this.$('ticketLeagueWrap').classList.remove('hide');this.$('date').value=this.today();this.$('odds').value='';this.$('sportsbook').value='';this.$('ticketStatus').value='active';this.$('ticketGameManual').value='';this.$('legs').replaceChildren();this.addLeg();await this.loadTicketGames();this.preview();this.$('saveStatus').textContent='';if(show)window.dispatchEvent(new CustomEvent('parlay:show-builder'));
+     }
