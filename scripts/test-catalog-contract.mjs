@@ -9,7 +9,7 @@ vm.runInContext(readFileSync(new URL('../app/src/scripts/catalog.js',import.meta
 const C=context.ParlayCatalog;
 
 const expectedWorldCupCodes=['ARG','AUS','AUT','BEL','BIH','BRA','CAN','CIV','COD','COL','CPV','CRO','CUW','CZE','DZA','ECU','EGY','ENG','ESP','FRA','GER','GHA','HTI','IRI','IRQ','JOR','JPN','KOR','KSA','MAR','MEX','NED','NOR','NZL','PAN','PAR','POR','QAT','RSA','SCO','SEN','SUI','SWE','TUN','TUR','URU','USA','UZB'];
-assert.deepEqual([...C.TEAM_CODES.WC].sort(),expectedWorldCupCodes,'World Cup team codes must match the confirmed 48-team field');
+assert.equal(JSON.stringify([...C.TEAM_CODES.WC].sort()),JSON.stringify(expectedWorldCupCodes),'World Cup team codes must match the confirmed 48-team field');
 assert.equal(C.TEAM_CODES.WC.includes('DEN'),false,'Non-participating Denmark must not remain in the 2026 World Cup catalog');
 
 for(const [league,types] of Object.entries(C.TYPES)){
@@ -28,8 +28,8 @@ for(const [league,codes] of Object.entries(C.TEAM_CODES)){
   for(const code of codes)assert.ok(C.TEAM_NAMES[league]?.[code],`${league} team code ${code} must have a display name`);
 }
 
-assert.deepEqual(C.gameTeams('ATL @ STL'),['ATL','STL'],'At-sign game parsing must tolerate whitespace');
-assert.deepEqual(C.gameTeams('STL vs ATL'),['ATL','STL'],'Versus game parsing must preserve away/home order');
+assert.equal(JSON.stringify([...C.gameTeams('ATL @ STL')]),JSON.stringify(['ATL','STL']),'At-sign game parsing must tolerate whitespace');
+assert.equal(JSON.stringify([...C.gameTeams('STL vs ATL')]),JSON.stringify(['ATL','STL']),'Versus game parsing must preserve away/home order');
 assert.equal(C.displayTeam('atl','mlb'),'Atlanta Braves','Display lookups must normalize code and league case');
 assert.equal(C.displayGame('atl@stl','mlb'),'Atlanta Braves @ St. Louis Cardinals','Game display must normalize code and league case');
 
