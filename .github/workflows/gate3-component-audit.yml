@@ -1,6 +1,9 @@
 name: Gate 3 component audit
 
 on:
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
@@ -13,16 +16,77 @@ jobs:
       - name: Check out exact audited commit
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.sha }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 24
-      - name: Record exact head
+      - name: Verify exact commit and branch isolation
         run: |
           set -euo pipefail
           git rev-parse HEAD | tee gate3-head.txt
           git diff --name-only origin/main...HEAD | tee gate3-changed-paths.txt
-      - name: Run current canonical suite
+          bad="$(git diff --name-only origin/main...HEAD | grep -Ev '^(app/|scripts/|architecture/|package.json$|\.github/workflows/gate3-component-audit\.yml$)' || true)"
+          test -z "$bad"
+      - name: Run pre-correction Gate 3 contracts
+        run: |
+          set +e
+          : > gate3-before-results.txt
+          for test in \
+            test-tracker-core-contract.mjs \
+            test-tracker-sources-contract.mjs \
+            test-tracker-evaluator-contract.mjs \
+            test-tracker-service-contract.mjs \
+            test-settlement-contract.mjs \
+            test-tracker-market-coverage.mjs
+          do
+            node "scripts/$test" > "${test%.mjs}.log" 2>&1
+            rc=$?
+            printf '%s=%s\n' "$test" "$rc" | tee -a gate3-before-results.txt
+          done
+          set -e
+      - name: Prove every new contract exposes an existing defect
+        run: |
+          set -euo pipefail
+          test "$(wc -l < gate3-before-results.txt)" -eq 6
+          if grep -Eq '=0$' gate3-before-results.txt; then
+            echo 'At least one Gate 3 contract unexpectedly passed before correction.' >&2
+            cat gate3-before-results.txt >&2
+            exit 1
+          fi
+      - name: Verify prior canonical suite still passes
         run: npm test
+      - name: Produce pre-correction evidence
+        if: always()
+        run: |
+          sha256sum \
+            app/src/scripts/tracker-core.js \
+            app/src/scripts/tracker-sources.js \
+            app/src/scripts/tracker-evaluator.js \
+            app/src/scripts/tracker-service.js \
+            app/src/scripts/settlement-service.js \
+            scripts/test-tracker-core-contract.mjs \
+            scripts/test-tracker-sources-contract.mjs \
+            scripts/test-tracker-evaluator-contract.mjs \
+            scripts/test-tracker-service-contract.mjs \
+            scripts/test-settlement-contract.mjs \
+            scripts/test-tracker-market-coverage.mjs > gate3-before-sha256.txt
+      - name: Upload Gate 3 pre-correction evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gate3-before-corrections
+          retention-days: 90
+          path: |
+            gate3-head.txt
+            gate3-changed-paths.txt
+            gate3-before-results.txt
+            gate3-before-sha256.txt
+            test-tracker-core-contract.log
+            test-tracker-sources-contract.log
+            test-tracker-evaluator-contract.log
+            test-tracker-service-contract.log
+            test-settlement-contract.log
+            test-tracker-market-coverage.log
+          if-no-files-found: error
