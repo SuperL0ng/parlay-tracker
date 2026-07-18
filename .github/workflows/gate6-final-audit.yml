@@ -1,0 +1,135 @@
+name: Gate 6 final exact-commit audit
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out exact cleaned canonical commit
+        uses: actions/checkout@v4
+        with:
+          ref: 3731f982987ac34a0b1d3bcf11a03b15399574a8
+          fetch-depth: 0
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Verify exact commit and live isolation
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "3731f982987ac34a0b1d3bcf11a03b15399574a8"
+          test "$(git rev-parse origin/main)" = "d896165380191e4b9876f2ea99386808c937ec8a"
+          git rev-parse HEAD | tee gate6-audited-head.txt
+          git rev-parse HEAD^{tree} | tee gate6-audited-tree-object.txt
+          git rev-parse origin/main | tee gate6-live-main-head.txt
+          git status --porcelain | tee gate6-status-before.txt
+          test ! -s gate6-status-before.txt
+      - name: Verify final repository tree and retired-layer absence
+        run: |
+          set -euo pipefail
+          git ls-tree -r --name-only HEAD | sort | tee gate6-final-tree.txt
+          find . -maxdepth 1 -type f -printf '%f\n' | sort | tee gate6-final-root-files.txt
+          git diff --name-status origin/main...HEAD | tee gate6-main-to-canonical-status.txt
+          git diff --diff-filter=D --name-only origin/main...HEAD | sort | tee gate6-removed-paths.txt
+          test -z "$(git ls-tree -r --name-only HEAD | grep -E '^(\.github/|png-icon-control/)' || true)"
+          test -z "$(git ls-tree -r --name-only HEAD | grep -E '(^|/)(show-legs-label-fix\.js|ticket-dashboard-details-v54\.js|dashboard-layout-v56\.js|dashboard-refresh-v58\.js|dashboard-polish-v63\.js|dashboard-more-actions-v64\.js|dashboard-sort-filter-v78\.js|mlb-live-loader\.js|ticket-sharing\.js|library-backup\.js|index\.html)$' || true)"
+          test ! -e index.html
+          test ! -e CNAME
+          test ! -e show-legs-label-fix.js
+      - name: Install exact dependencies and browser engines
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium webkit
+      - name: Verify permanent repository cleanliness contract
+        run: npm run verify:cleanliness
+      - name: Check canonical JavaScript syntax
+        run: npm run check:syntax
+      - name: Build gold and silver from canonical source
+        run: npm run build
+      - name: Verify canonical architecture
+        run: npm run verify:architecture
+      - name: Verify storage, catalog, and builder contracts
+        run: npm run test:components
+      - name: Verify tracker and settlement contracts
+        run: npm run test:tracker
+      - name: Verify controller and lifecycle contracts
+        run: npm run test:controllers
+      - name: Verify canonical regressions
+        run: npm run test:regressions
+      - name: Verify canonical hosting contract
+        run: npm run verify:hosting
+      - name: Verify browser and mobile adversarial matrix
+        run: npm run test:browser
+      - name: Verify integrated permanent pipeline
+        run: npm test 2>&1 | tee gate6-integrated-test.log
+      - name: Verify generated gold and silver parity
+        run: |
+          set -euo pipefail
+          for file in build/gold/*.js; do cmp "$file" "build/silver/$(basename "$file")"; done
+          cmp build/gold/app.css build/silver/app.css
+          cmp build/gold/dashboard.css build/silver/dashboard.css
+      - name: Produce final Gate 6 evidence
+        run: |
+          set -euo pipefail
+          sha256sum \
+            .gitignore \
+            README.md \
+            architecture/dashboard-dependency-map.md \
+            docs/HOSTING_WORKFLOW.md \
+            package.json \
+            package-lock.json \
+            playwright.config.mjs \
+            scripts/verify-repository-cleanliness.mjs \
+            app/config/builds.json \
+            app/src/index.template.html \
+            app/src/styles/app.css \
+            app/src/styles/dashboard.css \
+            app/src/scripts/*.js \
+            scripts/*.mjs \
+            tests/*.mjs > gate6-final-source-sha256.txt
+          find build/gold -maxdepth 1 -type f -print0 | sort -z | xargs -0 sha256sum > gate6-gold-build-sha256.txt
+          find build/silver -maxdepth 1 -type f -print0 | sort -z | xargs -0 sha256sum > gate6-silver-build-sha256.txt
+          cp build/gold/BUILD.json gate6-gold-BUILD.json
+          cp build/silver/BUILD.json gate6-silver-BUILD.json
+          printf '%s\n' \
+            'runtime historical HTML loader removed' \
+            'root runtime patch stack removed' \
+            'duplicate dashboard wrappers removed' \
+            'broad mutation observers and delayed repair layers removed' \
+            'show-legs-label-fix.js removed' \
+            'historical GitHub workflows and scripts removed' \
+            'repository cleanliness enforced by npm test' > gate6-closure-claims.txt
+          date -u +%Y-%m-%dT%H:%M:%SZ > gate6-audited-at.txt
+      - name: Upload final Gate 6 evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: gate6-final-architecture-closure-evidence
+          retention-days: 90
+          path: |
+            gate6-audited-head.txt
+            gate6-audited-tree-object.txt
+            gate6-live-main-head.txt
+            gate6-status-before.txt
+            gate6-final-tree.txt
+            gate6-final-root-files.txt
+            gate6-main-to-canonical-status.txt
+            gate6-removed-paths.txt
+            gate6-integrated-test.log
+            gate6-final-source-sha256.txt
+            gate6-gold-build-sha256.txt
+            gate6-silver-build-sha256.txt
+            gate6-gold-BUILD.json
+            gate6-silver-BUILD.json
+            gate6-closure-claims.txt
+            gate6-audited-at.txt
+            playwright-report/
+          if-no-files-found: error
