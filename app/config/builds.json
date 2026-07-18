@@ -1,0 +1,28 @@
+{
+  "gold": {
+    "domain": "simonsports.bet",
+    "canonicalUrl": "https://simonsports.bet/",
+    "themeName": "gold",
+    "accent": "#c79442",
+    "accentSoft": "#f4dfae",
+    "surfaceTop": "#f7f9fc",
+    "surfaceBottom": "#9da8b7",
+    "icon": "ssb-gold-v1.ico",
+    "touchIcon": "ssb-gold-touch-v1-180.png",
+    "manifest": "manifest-gold-v1.json",
+    "shareImage": "ssb-share-v3.png"
+  },
+  "silver": {
+    "domain": "simonsportsbetting.com",
+    "canonicalUrl": "https://simonsportsbetting.com/",
+    "themeName": "silver",
+    "accent": "#8f9aa9",
+    "accentSoft": "#d7dde6",
+    "surfaceTop": "#f7f9fc",
+    "surfaceBottom": "#9da8b7",
+    "icon": "favicon.ico",
+    "touchIcon": "ssb-touch-v3-180.png",
+    "manifest": "manifest.json",
+    "shareImage": "ssb-share-v3.png"
+  }
+}
