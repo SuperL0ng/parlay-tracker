@@ -1,6 +1,6 @@
 # Canonical Parlay Tracker application
 
-This directory is the only application source for both production builds.
+This directory is the only application source for both production domains.
 
 ```text
 app/src + app/config/builds.json
@@ -11,17 +11,14 @@ app/src + app/config/builds.json
  build/silver
 ```
 
-## Ownership
+The gold and silver builds share all JavaScript and structural CSS. They differ only through generated theme values, canonical metadata and copied brand assets.
 
-- `storage.js`: the sole owner of `parlayTracker.savedTickets.v1` and stable record IDs.
-- `builder-controller.js`: builder state, leg ordering, validation, serialization, editing, manual legs, and doubleheader identity.
-- `dashboard-controller.js`: all dashboard state, sorting before rendering, filtering, expansion, selection, deletion, and actions.
-- `tracker-service.js`: score refresh and ticket outcome persistence.
-- `settlement-service.js`: event-ledger settlement timestamps.
-- `ticket-view-controller.js`: standalone ticket and active-ticket rendering.
-- `sharing-controller.js`: Scriptable-code import and sportsbook-free share packages.
-- `app-controller.js`: navigation and cross-controller commands.
+Ownership rules:
 
-Gold and silver may differ only through generated metadata and theme variables. Application JavaScript, `app.css`, and `dashboard.css` must be identical.
+- `storage.js` exclusively owns `parlayTracker.savedTickets.v1` and record IDs.
+- `dashboard-controller.js` exclusively owns dashboard sorting, filtering, expansion, selection, deletion and actions.
+- `builder-controller.js` exclusively owns the builder state, canonical ticket serialization, manual legs, doubleheader binding and leg reordering.
+- `tracker-service.js` coordinates data retrieval, evaluation and settlement persistence.
+- No runtime historical-HTML loader, dashboard wrapper stack, mutation-observer repair pass or delayed restoration layer is permitted.
 
-The branch remains off-live until the behavioral test matrix passes.
+This remains an off-live development build until the complete behavioral test matrix passes.
