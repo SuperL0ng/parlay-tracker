@@ -13,10 +13,7 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.head_ref }}
-      - name: Fetch live V5 assets
+      - name: Fetch live V5 assets and browser test
         shell: bash
         run: |
           set -euo pipefail
@@ -43,7 +40,8 @@ jobs:
           }
           verify_domain simonsports.bet
           verify_domain simonsportsbetting.com
+          curl -fsSL 'https://raw.githubusercontent.com/SuperL0ng/parlay-tracker/verify-dashboard-v5-behavior/scripts/test-dashboard-v5-browser.mjs' -o test-dashboard-v5-browser.mjs
       - name: Install browser test dependency
-        run: npm install --no-save jsdom@24
+        run: npm install --no-save jsdom@24 >/dev/null
       - name: Run four-ticket browser regression
-        run: node scripts/test-dashboard-v5-browser.mjs
+        run: node test-dashboard-v5-browser.mjs
