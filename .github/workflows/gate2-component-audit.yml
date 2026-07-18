@@ -41,36 +41,35 @@ jobs:
         run: npm run build
       - name: Verify canonical architecture
         run: npm run verify:architecture
-      - name: Test storage contract
-        id: storage
-        continue-on-error: true
-        run: node scripts/test-storage-contract.mjs
-      - name: Test catalog contract
-        id: catalog
-        continue-on-error: true
-        run: node scripts/test-catalog-contract.mjs
-      - name: Test builder contract
-        id: builder
-        continue-on-error: true
-        run: node scripts/test-builder-contract.mjs
+      - name: Capture component contract outcomes
+        id: components
+        shell: bash
+        run: |
+          set +e
+          node scripts/test-storage-contract.mjs > storage-contract.log 2>&1
+          storage_status=$?
+          node scripts/test-catalog-contract.mjs > catalog-contract.log 2>&1
+          catalog_status=$?
+          node scripts/test-builder-contract.mjs > builder-contract.log 2>&1
+          builder_status=$?
+          set -e
+          cat storage-contract.log
+          cat catalog-contract.log
+          cat builder-contract.log
+          echo "storage=$storage_status" >> "$GITHUB_OUTPUT"
+          echo "catalog=$catalog_status" >> "$GITHUB_OUTPUT"
+          echo "builder=$builder_status" >> "$GITHUB_OUTPUT"
       - name: Run existing canonical regressions
-        id: regressions
-        continue-on-error: true
         run: npm run test:regressions
       - name: Verify canonical hosting contract
-        id: hosting
-        continue-on-error: true
         run: npm run verify:hosting
-      - name: Enforce all Gate 2 outcomes
-        if: always()
+      - name: Enforce component contract outcomes
         shell: bash
         run: |
           set -euo pipefail
-          failed=0
-          for outcome in "${{ steps.storage.outcome }}" "${{ steps.catalog.outcome }}" "${{ steps.builder.outcome }}" "${{ steps.regressions.outcome }}" "${{ steps.hosting.outcome }}"; do
-            if [ "$outcome" != success ]; then failed=1; fi
-          done
-          exit "$failed"
+          test "${{ steps.components.outputs.storage }}" = 0
+          test "${{ steps.components.outputs.catalog }}" = 0
+          test "${{ steps.components.outputs.builder }}" = 0
       - name: Capture Gate 2 evidence
         if: always()
         shell: bash
@@ -78,6 +77,7 @@ jobs:
           git rev-parse HEAD > branch-head.txt
           git rev-parse origin/main > main-head.txt
           sha256sum app/src/scripts/storage.js app/src/scripts/catalog.js app/src/scripts/builder-controller.js scripts/test-storage-contract.mjs scripts/test-catalog-contract.mjs scripts/test-builder-contract.mjs package.json > gate2-sha256.txt
+          printf 'storage=%s\ncatalog=%s\nbuilder=%s\n' "${{ steps.components.outputs.storage }}" "${{ steps.components.outputs.catalog }}" "${{ steps.components.outputs.builder }}" > component-status.txt
           printf 'Gate 2 evidence captured at %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > result.txt
       - name: Upload Gate 2 evidence
         if: always()
@@ -89,5 +89,9 @@ jobs:
             main-head.txt
             changed-files.txt
             gate2-sha256.txt
+            component-status.txt
+            storage-contract.log
+            catalog-contract.log
+            builder-contract.log
             result.txt
           if-no-files-found: error
