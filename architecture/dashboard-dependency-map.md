@@ -1,58 +1,39 @@
-# Dashboard dependency map — pre-replacement audit
+# Canonical application dependency map
 
-## Live repositories
+## Source and build chain
 
-| Build | Repository | Branch | Domain |
-|---|---|---|---|
-| Gold | `SuperL0ng/parlay-tracker` | `main` | `simonsports.bet` |
-| Silver | `SuperL0ng/SuperL0ng.github.io` | `main` | `simonsportsbetting.com` |
+`app/src` and `app/config/builds.json` are the only application source. `scripts/build-static.mjs` generates both theme builds. Gold and silver share identical JavaScript and application styles; only configured identity, metadata, theme tokens, domain files, and required assets differ.
 
-Neither live branch is modified by work under `agent/canonical-app-architecture`.
+## Runtime ownership
 
-## Current runtime chain
-
-The gold entry point fetches a historical `index.html`, rewrites it in the browser, injects the patch stack, and calls `document.write()`. Silver contains the historical application inline and loads the same patch stack directly.
-
-The effective dashboard chain is:
-
-1. Historical inline `renderTicketDashboard()`.
-2. `settlement-status.js` replaces that renderer.
-3. `navigation-links-v24.js`, `ticket-sharing.js`, `optional-sportsbook.js`, `ticket-dashboard-details-v54.js`, `dashboard-layout-v56.js`, `dashboard-polish-v63.js`, `dashboard-more-actions-v64.js`, and `dashboard-sort-filter-v78.js` wrap or repair dashboard output.
-4. `show-legs-label-fix.js` adds a second expansion/selection/ID-binding controller with observers and delayed repair passes.
-5. `dashboard-refresh-v58.js`, `settlement-status.js`, and `actual-settlement-time.js` divide refresh and settlement ownership.
-
-## Replacement ownership
-
-| Responsibility | Canonical owner |
+| Responsibility | Sole owner |
 |---|---|
-| Ticket persistence and ID migration | `app/src/scripts/storage.js` |
-| Filtering and sorting | `DashboardController.recordsForRender()` |
-| Dashboard rendering | `app/src/scripts/dashboard-controller.js` |
-| Expansion state | `DashboardController.state.expandedIds` |
-| Selection and deletion | `DashboardController.state.selectedIds` |
-| Actions menu | `DashboardController.showActions()` |
-| Dashboard presentation | `app/src/styles/dashboard.css` |
-| Theme differences | `app/config/builds.json` → generated `theme.css` |
-| Gold/silver generation | `scripts/build-static.mjs` |
+| Ticket persistence and stable IDs | `storage.js` |
+| Builder state, serialization, validation, and leg ordering | `builder-controller.js` |
+| Dashboard sorting, filtering, rendering, expansion, selection, deletion, and actions | `dashboard-controller.js` |
+| Score refresh and outcome persistence | `tracker-service.js` |
+| Event-ledger settlement | `settlement-service.js` |
+| Ticket and active-ticket views | `ticket-view-controller.js` |
+| Import and sportsbook-free sharing | `sharing-controller.js` |
+| Navigation and cross-controller commands | `app-controller.js` |
+| Initialization and teardown | `bootstrap.js` |
+| Dashboard presentation | `dashboard.css` |
 
-## Data-preservation contract
+## Data contract
 
-The replacement retains the existing key:
+The storage key remains `parlayTracker.savedTickets.v1`. Existing IDs are preserved. Missing or duplicate IDs are repaired once by storage. Rendering and actions bind records only by canonical ticket ID, never card position.
 
-```text
-parlayTracker.savedTickets.v1
-```
+## Retired architecture
 
-Existing IDs are preserved. Missing or duplicated IDs receive one stable ID during the storage migration. Rendering never infers identity from card position.
+The former live-root runtime fetched or rewrote historical HTML, injected versioned patch scripts, repeatedly wrapped dashboard functions, and used mutation observers and delayed repair passes. That entire runtime, including `show-legs-label-fix.js`, historical loaders, duplicate dashboard controllers, patch workflows, and superseded regression scripts, has been removed from the canonical branch.
 
-## Explicitly prohibited in the replacement
+## Enforced prohibitions
 
-- runtime loading of historical HTML;
-- `document.write()`;
-- positional record/card binding;
-- sorting DOM nodes after rendering;
-- dashboard render wrappers;
-- dashboard-wide mutation observers;
-- delayed dashboard repair passes;
-- `show-legs-label-fix.js`;
-- temporary GitHub verification or promotion workflows.
+- no runtime historical-HTML loading or `document.write()`;
+- no application runtime outside `app/src`;
+- no duplicate dashboard controller or stylesheet;
+- no positional ticket ownership;
+- no post-render DOM sorting;
+- no dashboard render wrappers, broad mutation observers, or delayed repair layers;
+- no committed generated build output;
+- no historical patch or verification workflows.

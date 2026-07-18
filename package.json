@@ -10,10 +10,11 @@
     "test:tracker": "node scripts/test-tracker-core-contract.mjs && node scripts/test-tracker-sources-contract.mjs && node scripts/test-tracker-evaluator-contract.mjs && node scripts/test-tracker-service-contract.mjs && node scripts/test-settlement-contract.mjs && node scripts/test-tracker-market-coverage.mjs",
     "test:regressions": "node scripts/test-canonical-doubleheader-binding.mjs && node scripts/test-canonical-ticket-id-binding.mjs && node scripts/test-canonical-action-menu-lifecycle.mjs",
     "verify:hosting": "node scripts/verify-canonical-hosting-contract.mjs",
-    "test": "npm run check:syntax && npm run build && npm run verify:architecture && npm run test:components && npm run test:tracker && npm run test:controllers && npm run test:regressions && npm run verify:hosting && npm run test:mobile-platform && npm run test:browser",
+    "test": "npm run check:syntax && npm run verify:cleanliness && npm run build && npm run verify:architecture && npm run test:components && npm run test:tracker && npm run test:controllers && npm run test:regressions && npm run verify:hosting && npm run test:browser",
     "test:controllers": "node scripts/test-sharing-controller-contract.mjs && node scripts/test-ticket-view-controller-contract.mjs && node scripts/test-dashboard-controller-contract.mjs && node scripts/test-app-controller-contract.mjs && node scripts/test-bootstrap-contract.mjs && node scripts/test-controller-lifecycle-integration.mjs",
     "test:mobile-platform": "node scripts/test-mobile-platform-contract.mjs",
-    "test:browser": "playwright test"
+    "test:browser": "playwright test",
+    "verify:cleanliness": "node scripts/verify-repository-cleanliness.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.61.1"
