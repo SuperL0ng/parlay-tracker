@@ -1,0 +1,17 @@
+{
+  "name": "Simon Sports Betting Parlay Tracker",
+  "short_name": "Parlay Tracker",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#d7dde6",
+  "theme_color": "#8f9aa9",
+  "icons": [
+    {
+      "src": "./ssb-touch-v3-180.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
