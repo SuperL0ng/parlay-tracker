@@ -46,7 +46,8 @@ jobs:
           const old='panel.querySelector(`input[name="dashboard-sort"][value="${this.state.sort}"]`)?.setAttribute(\'checked\',\'\');panel.querySelector(`input[name="dashboard-direction"][value="${this.state.direction}"]`)?.setAttribute(\'checked\',\'\');panel.querySelector(`input[name="dashboard-filter"][value="${this.state.filter}"]`)?.setAttribute(\'checked\',\'\');';
           const replacement='const sort=panel.querySelector(`input[name="dashboard-sort"][value="${this.state.sort}"]`),direction=panel.querySelector(`input[name="dashboard-direction"][value="${this.state.direction}"]`),filter=panel.querySelector(`input[name="dashboard-filter"][value="${this.state.filter}"]`);if(sort)sort.checked=true;if(direction)direction.checked=true;if(filter)filter.checked=true;';
           if(!source.includes(old))throw new Error('Missing generated sort-filter assignment');
-          fs.writeFileSync(path,source.replace(old,replacement));
+          source=source.replace(old,replacement).replaceAll('panel.setAttribute(','panel.setAttribute?.(');
+          fs.writeFileSync(path,source);
           NODE
       - name: Install exact dependencies and browsers
         run: |
