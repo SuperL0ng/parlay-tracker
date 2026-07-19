@@ -57,6 +57,8 @@ jobs:
         run: npm run check:syntax
       - name: Verify controller contracts
         run: npm run test:controllers
+      - name: Stage final source tree
+        run: git add -A
       - name: Verify repository cleanliness
         run: npm run verify:cleanliness
       - name: Build canonical gold and silver
@@ -78,8 +80,7 @@ jobs:
       - name: Verify bounded source changes
         run: |
           set -euo pipefail
-          git add -A
-          git diff --cached --name-status | tee visual-parity-changes.txt
+          git diff --cached --name-status
           test -z "$(git diff --cached --name-only | grep -Ev '^(app/src/index\.template\.html|app/src/scripts/dashboard-controller\.js|app/src/styles/app\.css|app/src/styles/dashboard\.css|\.github/workflows/apply-visual-parity\.yml|\.visual-parity/(apply|prepare)\.mjs)$' || true)"
           test ! -e .github/workflows/apply-visual-parity.yml
           test ! -e .visual-parity
