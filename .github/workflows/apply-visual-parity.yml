@@ -57,7 +57,23 @@ jobs:
         run: npm run check:syntax
       - name: Verify controller contracts
         run: npm run test:controllers
-      - name: Run full permanent suite
+      - name: Verify repository cleanliness
+        run: npm run verify:cleanliness
+      - name: Build canonical gold and silver
+        run: npm run build
+      - name: Verify canonical architecture
+        run: npm run verify:architecture
+      - name: Verify storage catalog and builder contracts
+        run: npm run test:components
+      - name: Verify tracker and settlement contracts
+        run: npm run test:tracker
+      - name: Verify canonical regressions
+        run: npm run test:regressions
+      - name: Verify hosting contract
+        run: npm run verify:hosting
+      - name: Verify browser and mobile matrix
+        run: npm run test:browser
+      - name: Verify integrated permanent suite
         run: npm test
       - name: Verify bounded source changes
         run: |
