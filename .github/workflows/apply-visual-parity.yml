@@ -23,15 +23,18 @@ jobs:
           git merge-base --is-ancestor 7271b5fd66b5935b3bf84037a3c44125d2490193 HEAD
           test "$(git rev-parse origin/main)" = "d896165380191e4b9876f2ea99386808c937ec8a"
           test -f .visual-parity/apply.mjs
+          test -f .visual-parity/prepare.mjs
           test -f .github/workflows/apply-visual-parity.yml
-          test -z "$(git diff --name-only 3731f982987ac34a0b1d3bcf11a03b15399574a8...HEAD | grep -Ev '^(\.visual-parity/apply\.mjs|\.github/workflows/apply-visual-parity\.yml)$' || true)"
+          test -z "$(git diff --name-only 3731f982987ac34a0b1d3bcf11a03b15399574a8...HEAD | grep -Ev '^(\.visual-parity/(apply|prepare)\.mjs|\.github/workflows/apply-visual-parity\.yml)$' || true)"
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: npm
       - name: Apply visual parity transplant
-        run: node .visual-parity/apply.mjs
+        run: |
+          node .visual-parity/prepare.mjs
+          node .visual-parity/apply.mjs
       - name: Install exact dependencies and browsers
         run: |
           npm ci
@@ -43,7 +46,7 @@ jobs:
           set -euo pipefail
           git add -A
           git diff --cached --name-status | tee visual-parity-changes.txt
-          test -z "$(git diff --cached --name-only | grep -Ev '^(app/src/index\.template\.html|app/src/scripts/dashboard-controller\.js|app/src/styles/app\.css|app/src/styles/dashboard\.css|\.github/workflows/apply-visual-parity\.yml|\.visual-parity/apply\.mjs)$' || true)"
+          test -z "$(git diff --cached --name-only | grep -Ev '^(app/src/index\.template\.html|app/src/scripts/dashboard-controller\.js|app/src/styles/app\.css|app/src/styles/dashboard\.css|\.github/workflows/apply-visual-parity\.yml|\.visual-parity/(apply|prepare)\.mjs)$' || true)"
           test ! -e .github/workflows/apply-visual-parity.yml
           test ! -e .visual-parity
       - name: Commit canonical visual parity source
