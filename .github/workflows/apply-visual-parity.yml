@@ -37,6 +37,17 @@ jobs:
         run: node --check .visual-parity/apply.mjs
       - name: Apply visual parity transplant
         run: node .visual-parity/apply.mjs
+      - name: Normalize sort-filter state assignment
+        run: |
+          node <<'NODE'
+          const fs=require('fs');
+          const path='app/src/scripts/dashboard-controller.js';
+          let source=fs.readFileSync(path,'utf8');
+          const old='panel.querySelector(`input[name="dashboard-sort"][value="${this.state.sort}"]`)?.setAttribute(\'checked\',\'\');panel.querySelector(`input[name="dashboard-direction"][value="${this.state.direction}"]`)?.setAttribute(\'checked\',\'\');panel.querySelector(`input[name="dashboard-filter"][value="${this.state.filter}"]`)?.setAttribute(\'checked\',\'\');';
+          const replacement='const sort=panel.querySelector(`input[name="dashboard-sort"][value="${this.state.sort}"]`),direction=panel.querySelector(`input[name="dashboard-direction"][value="${this.state.direction}"]`),filter=panel.querySelector(`input[name="dashboard-filter"][value="${this.state.filter}"]`);if(sort)sort.checked=true;if(direction)direction.checked=true;if(filter)filter.checked=true;';
+          if(!source.includes(old))throw new Error('Missing generated sort-filter assignment');
+          fs.writeFileSync(path,source.replace(old,replacement));
+          NODE
       - name: Install exact dependencies and browsers
         run: |
           npm ci
