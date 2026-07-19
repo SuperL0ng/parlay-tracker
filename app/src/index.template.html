@@ -41,13 +41,16 @@
           <p id="dashboardStatus" class="dashboardStatus" aria-live="polite"></p>
         </div>
         <div class="dashboardActions">
-          <button id="importTicketBtn" class="ghost" type="button">Import Code</button>
-          <a id="viewActiveBtn" class="button ghost" href="#view=active">View Active</a>
-          <button id="newTicketBtn" type="button">New Ticket</button>
-          <button type="button" class="ghost" data-dashboard-action="refresh">Refresh</button>
-          <button type="button" class="ghost" data-dashboard-action="select-mode">Select</button>
-          <button type="button" class="ghost filterButton" data-dashboard-action="sort-filter" aria-label="Sort and filter tickets">Sort &amp; Filter</button>
+          <button id="importTicketBtn" class="ghost" type="button"><span>IMPORT<br>CODE</span></button>
+          <a id="viewActiveBtn" class="button ghost" href="#view=active"><span>VIEW<br>ACTIVE</span></a>
+          <button id="newTicketBtn" type="button"><span>NEW<br>TICKET</span></button>
         </div>
+      </div>
+      <div class="dashboardToolbar">
+        <button type="button" class="ghost" data-dashboard-action="refresh">Refresh</button>
+        <button type="button" class="ghost" data-dashboard-action="expand-all" aria-pressed="false">Expand All</button>
+        <button type="button" class="ghost" data-dashboard-action="select-mode">Select</button>
+        <button type="button" class="ghost filterButton" data-dashboard-action="sort-filter" aria-label="Sort and filter tickets"><span class="sortFilterGlyph" aria-hidden="true"><span></span><span></span><span></span></span></button>
       </div>
       <div id="ticketList" class="ticketList"></div>
     </section>
