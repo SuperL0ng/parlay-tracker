@@ -1,9 +1,7 @@
 (() => {
   'use strict';
   class BackupController {
-    constructor({storage}){
-      this.storage=storage;this.started=false;this.importMode='merge';this.$=id=>document.getElementById(id);this.handlers=[];
-    }
+    constructor({storage}){this.storage=storage;this.started=false;this.importMode='merge';this.$=id=>document.getElementById(id);this.handlers=[]}
     start(){if(this.started)return this;this.started=true;this.bind('libraryBackupOpen','click',()=>this.open());this.bind('libraryBackupBackdrop','click',()=>this.close());this.bind('libraryBackupCancel','click',()=>this.close());this.bind('libraryExport','click',()=>{this.exportLibrary();this.close()});this.bind('libraryImportMerge','click',()=>this.chooseImport('merge'));this.bind('libraryImportReplace','click',()=>this.chooseImport('replace'));this.bind('libraryBackupFile','change',event=>void this.importFile(event));return this}
     stop(){if(!this.started)return;for(const [element,type,handler] of this.handlers)element.removeEventListener(type,handler);this.handlers=[];this.close();this.started=false}
     bind(id,type,handler){const element=this.$(id);if(!element)throw new Error(`Missing backup element: ${id}`);element.addEventListener(type,handler);this.handlers.push([element,type,handler])}
@@ -18,5 +16,18 @@
     restore(payload){if(!payload||payload.format!=='parlay-tracker-library-backup'||payload.version!==1||!payload.storage||typeof payload.storage!=='object')throw new Error('This is not a valid Parlay Tracker library backup.');if(this.importMode==='replace'){const keys=[];for(let index=0;index<localStorage.length;index++){const key=localStorage.key(index);if(key?.startsWith('parlayTracker.'))keys.push(key)}keys.forEach(key=>localStorage.removeItem(key))}let added=0;for(const [key,value] of Object.entries(payload.storage)){if(!key.startsWith('parlayTracker.')||typeof value!=='string')continue;if(this.importMode==='merge'&&key===this.storage.KEY){const result=this.mergeTickets(localStorage.getItem(key),value);localStorage.setItem(key,result.raw);added+=result.added}else if(this.importMode==='replace'||localStorage.getItem(key)===null)localStorage.setItem(key,value)}window.dispatchEvent(new CustomEvent('parlay:storage-changed'));return added}
     async importFile(event){const file=event.target.files?.[0];if(!file)return;try{const added=this.restore(JSON.parse(await file.text()));this.close();alert(this.importMode==='merge'?`Ticket library imported. ${added} new ticket${added===1?'':'s'} added.`:'Ticket library replaced from backup.')}catch(error){alert(error?.message||'The ticket library could not be imported.')}}
   }
+  class SportsbookController {
+    constructor({storage,builder}){this.storage=storage;this.builder=builder;this.started=false;this.$=id=>document.getElementById(id);this.onChange=this.onChange.bind(this);this.onInput=this.onInput.bind(this);this.onBuilderShown=this.onBuilderShown.bind(this);this.onTicketSaved=this.onTicketSaved.bind(this)}
+    start(){if(this.started)return this;this.started=true;this.$('sportsbook').addEventListener('change',this.onChange);this.$('sportsbookCustom').addEventListener('input',this.onInput);window.addEventListener('parlay:show-builder',this.onBuilderShown);window.addEventListener('parlay:ticket-saved',this.onTicketSaved);this.syncVisibility();return this}
+    stop(){if(!this.started)return;this.$('sportsbook').removeEventListener('change',this.onChange);this.$('sportsbookCustom').removeEventListener('input',this.onInput);window.removeEventListener('parlay:show-builder',this.onBuilderShown);window.removeEventListener('parlay:ticket-saved',this.onTicketSaved);this.started=false}
+    clean(value){return String(value??'').trim()}
+    isListed(value){return [...this.$('sportsbook').options].some(option=>option.value===value&&option.value!=='Other')}
+    syncVisibility(){const custom=this.$('sportsbookCustom'),active=this.$('sportsbook').value==='Other';custom.classList.toggle('hide',!active);if(!active)custom.value=''}
+    onChange(){this.syncVisibility();this.builder.preview?.()}
+    onInput(){this.builder.preview?.()}
+    onBuilderShown(){const select=this.$('sportsbook'),custom=this.$('sportsbookCustom'),record=this.builder.editingId?this.storage.find(this.builder.editingId):null,name=this.clean(record?.sportsbook);if(name&&!this.isListed(name)){select.value='Other';custom.value=name;custom.classList.remove('hide')}else this.syncVisibility()}
+    onTicketSaved(event){const id=event.detail?.id;if(!id)return;const select=this.$('sportsbook'),custom=this.$('sportsbookCustom'),value=select.value==='Other'?this.clean(custom.value):this.clean(select.value);this.storage.update(id,record=>{record.sportsbook=value;record.updatedAt=new Date().toISOString();return record})}
+  }
   window.BackupController=BackupController;
+  window.SportsbookController=SportsbookController;
 })();
