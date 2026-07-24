@@ -25,7 +25,7 @@
   <header class="top">
     <img class="logo" src="./{{LOGO}}" alt="Simon Sports Betting">
     <h1>PARLAY TRACKER</h1>
-    <p>Ticket Builder · Live Tracker · Sharing</p>
+    <p>BUILD · TRACK · SHARE</p>
   </header>
 
   <nav id="appTabs" class="appTabs" aria-label="Application views">
@@ -53,6 +53,7 @@
         <button type="button" class="ghost filterButton" data-dashboard-action="sort-filter" aria-label="Sort and filter tickets"><span class="sortFilterGlyph" aria-hidden="true"><span></span><span></span><span></span></span></button>
       </div>
       <div id="ticketList" class="ticketList"></div>
+      <div class="libraryBackupBar"><button id="libraryBackupOpen" class="ghost" type="button">Backup &amp; Transfer</button></div>
     </section>
 
     <section id="standaloneView" class="card hide" aria-live="polite"></section>
@@ -66,7 +67,7 @@
           <div id="ticketLeagueWrap"><label for="ticketLeague">Ticket League</label><select id="ticketLeague"><option>MLB</option><option>NBA</option><option>WNBA</option></select></div>
           <div class="full"><label for="ticketGame">Ticket Game</label><select id="ticketGame"><option value="">Loading games…</option></select><input id="ticketGameManual" class="manualInput hide" placeholder="Manual game, e.g. NYM@ATL"><div id="apiStatus" class="status">Waiting for games…</div></div>
           <div><label for="odds">Odds / Title</label><input id="odds" placeholder="+350"></div>
-          <div><label for="sportsbook">Sportsbook</label><select id="sportsbook"><option value="">No sportsbook</option><option>DraftKings</option><option>FanDuel</option><option>BetMGM</option><option>Caesars</option><option>Other</option></select></div>
+          <div><label for="sportsbook">Sportsbook</label><select id="sportsbook"><option value="">No sportsbook</option><option>DraftKings</option><option>FanDuel</option><option>BetMGM</option><option>Caesars Sportsbook</option><option>Fanatics Sportsbook</option><option>bet365</option><option>Hard Rock Bet</option><option>theScore Bet</option><option>BetRivers</option><option>Bally Bet</option><option>Circa Sports</option><option>Prime Sports</option><option>Betly</option><option>Desert Diamond Sports</option><option>STN Sports</option><option>South Point</option><option value="Other">Other / Custom</option></select><input id="sportsbookCustom" class="manualInput hide" placeholder="Enter sportsbook name"></div>
           <div><label for="ticketStatus">Ticket Status</label><select id="ticketStatus"><option value="active">Active</option><option value="completed">Completed</option></select></div>
         </div>
       </section>
@@ -95,6 +96,17 @@
     </div>
   </main>
 
+  <div id="libraryBackupBackdrop" class="modalBackdrop hide" aria-hidden="true"></div>
+  <section id="libraryBackupSheet" class="bottomSheet hide" role="dialog" aria-modal="true" aria-labelledby="libraryBackupTitle">
+    <div class="sheetHandle"></div><strong id="libraryBackupTitle">BACKUP &amp; TRANSFER</strong>
+    <p class="libraryBackupHelp">Export the complete local ticket library or restore one from a prior backup.</p>
+    <button id="libraryExport" type="button">Export Ticket Library</button>
+    <button id="libraryImportMerge" class="ghost" type="button">Import — Merge</button>
+    <button id="libraryImportReplace" class="ghost" type="button">Import — Replace All</button>
+    <button id="libraryBackupCancel" class="ghost" type="button">Cancel</button>
+    <input id="libraryBackupFile" class="hide" type="file" accept="application/json,.json">
+  </section>
+
   <div id="codeSheetBackdrop" class="modalBackdrop hide" aria-hidden="true"></div>
   <section id="codeSheet" class="bottomSheet hide" role="dialog" aria-modal="true" aria-labelledby="codeSheetTitle">
     <div class="sheetHandle"></div><strong id="codeSheetTitle">TICKET CODE</strong>
@@ -109,7 +121,7 @@
     <p id="ticketShareHelp">Paste the same ticket object used by the Scriptable trackers.</p>
     <textarea id="ticketShareInput" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder='{title:"+870",date:"20260711",type:"sgp",game:"ATL@STL",legs:[...]}'></textarea>
     <label for="ticketImportSportsbook">Sportsbook on this device</label>
-    <select id="ticketImportSportsbook"><option value="">No sportsbook</option><option>DraftKings</option><option>FanDuel</option><option>BetMGM</option><option>Caesars</option><option>Other</option></select>
+    <select id="ticketImportSportsbook"><option value="">No sportsbook</option><option>DraftKings</option><option>FanDuel</option><option>BetMGM</option><option>Caesars Sportsbook</option><option>Fanatics Sportsbook</option><option>bet365</option><option>Hard Rock Bet</option><option>theScore Bet</option><option>BetRivers</option><option>Bally Bet</option><option>Circa Sports</option><option value="Other">Other / Custom</option></select>
     <div id="ticketSharePreview" class="sharePreview hide"></div>
     <div id="ticketShareStatus" class="status bad" aria-live="polite"></div>
     <div class="modalActions"><button id="ticketSharePrimary" type="button">Preview Ticket</button><button id="ticketShareCancel" class="ghost" type="button">Cancel</button></div>
@@ -126,6 +138,7 @@
   <script src="./sharing-controller.js"></script>
   <script src="./ticket-view-controller.js"></script>
   <script src="./dashboard-controller.js"></script>
+  <script src="./backup-controller.js"></script>
   <script src="./app-controller.js"></script>
   <script src="./bootstrap.js"></script>
 </body>
