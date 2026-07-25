@@ -19,12 +19,13 @@ globalThis.document={
   hidden:false,
   body:{classList:classList(),append(...nodes){bodyChildren.push(...nodes)},appendChild(node){bodyChildren.push(node)}},
   addEventListener:docHub.addEventListener.bind(docHub),removeEventListener:docHub.removeEventListener.bind(docHub),
-  createElement:()=>makePanel(),createDocumentFragment:()=>({appendChild(){}}),
+  createElement:()=>makePanel(),createDocumentFragment:()=>({appendChild(){}}),createTextNode:text=>({textContent:text}),
   querySelector:()=>null,querySelectorAll:()=>[]
 };
 globalThis.confirm=()=>true;
 vm.runInThisContext(readFileSync(new URL('../app/src/scripts/ticket-state-model.js',import.meta.url),'utf8'),{filename:'ticket-state-model.js'});
 vm.runInThisContext(readFileSync(new URL('../app/src/scripts/dashboard-controller.js',import.meta.url),'utf8'),{filename:'dashboard-controller.js'});
+const dashboardCss=readFileSync(new URL('../app/src/styles/dashboard.css',import.meta.url),'utf8');
 const stateModel=globalThis.ParlayTicketStateModel;
 const root={replaceChildren(){},appendChild(){},parentElement:{querySelector:()=>null,querySelectorAll:()=>[]},insertAdjacentElement(){}};
 const status={textContent:''};
@@ -118,6 +119,15 @@ const makeController=({storage={KEY:'k',load:()=>[]},tracker={}}={})=>new global
   assert.match(card.innerHTML,/DRAFTKINGS/,'Sportsbook badges must retain uppercase display text');
   assert.match(card.innerHTML,/workflowBadge">COMPLETE/,'Workflow and result must render as separate concepts');
   assert.match(card.innerHTML,/stateBadge">WON/,'Final result must remain independently visible');
+  assert.match(card.innerHTML,/data-leg-state="won"/,'Terminal winning legs must expose a semantic presentation state');
+}
+
+{
+  const record={id:'states',status:'active',ticket:{title:'+100',type:'parlay',league:'MLB',legs:[{label:'Lost'},{label:'Push'},{label:'Live'},{label:'Pending'}]},trackerSnapshot:{outcome:'LIVE',legs:[{state:'lost',value:0},{state:'push',value:1},{state:'live',value:2},{state:'pending',value:0}]},legSettlements:[{index:0,status:'LOSS',actualValue:0},{index:1,status:'VOID',actualValue:1}]};
+  const controller=makeController({storage:{load:()=>[record]}});
+  const html=controller.legsHtml(controller.view(record));
+  for(const state of ['lost','push','live','pending'])assert.match(html,new RegExp(`data-leg-state="${state}"`),`Expanded legs must expose ${state} state`);
+  for(const state of ['won','lost','push','live','pending','suspended','unavailable'])assert.ok(dashboardCss.includes(`data-leg-state="${state}"`),`Dashboard stylesheet must define ${state} leg presentation`);
 }
 
 {
