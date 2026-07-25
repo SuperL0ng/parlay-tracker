@@ -45,4 +45,10 @@ const incomplete=model.normalize({status:'completed',ticket:{legs:[{},{}]},legSe
 assert.equal(incomplete.finalOutcome,'');
 assert.equal(incomplete.runtime,'PENDING');
 
+const sparse=model.normalize({status:'completed',ticket:{legs:[]},legSettlements:[{index:3,status:'WIN',actualValue:7}]});
+assert.equal(sparse.legs.length,4,'Sparse settlement indexes must preserve the highest referenced leg index');
+assert.equal(sparse.legs[3].result,'WON');
+assert.equal(sparse.legs[3].actualValue,7);
+assert.equal(sparse.finalOutcome,'','Missing lower-index legs must prevent a false terminal ticket result');
+
 console.log('ticket-state-model contract: ok');
