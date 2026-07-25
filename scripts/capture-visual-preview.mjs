@@ -42,10 +42,16 @@ try{
   const page=await context.newPage();
   await page.addInitScript(records=>localStorage.setItem('parlayTracker.savedTickets.v1',JSON.stringify(records)),tickets);
   await page.goto(baseURL,{waitUntil:'networkidle'});
+  const collapsedVisible=await page.locator('.ticketDetails').evaluateAll(nodes=>nodes.filter(node=>getComputedStyle(node).display!=='none').length);
+  if(collapsedVisible!==0)throw new Error(`Collapsed preview exposed ${collapsedVisible} ticket detail panel(s)`);
   await page.screenshot({path:`${output}/01-dashboard-collapsed.png`,fullPage:true});
   await page.getByRole('button',{name:'Expand All'}).click();
+  const expandedVisible=await page.locator('.ticketDetails').evaluateAll(nodes=>nodes.filter(node=>getComputedStyle(node).display!=='none').length);
+  if(expandedVisible!==tickets.length)throw new Error(`Expand All exposed ${expandedVisible} of ${tickets.length} ticket detail panels`);
   await page.screenshot({path:`${output}/02-dashboard-expanded.png`,fullPage:true});
   await page.getByRole('button',{name:'Select'}).click();
+  const selectionVisible=await page.locator('.ticketDetails').evaluateAll(nodes=>nodes.filter(node=>getComputedStyle(node).display!=='none').length);
+  if(selectionVisible!==0)throw new Error(`Selection mode exposed ${selectionVisible} ticket detail panel(s)`);
   await page.screenshot({path:`${output}/03-dashboard-selection.png`,fullPage:true});
   await page.getByRole('button',{name:'Cancel'}).click();
   await page.locator('a[href="#ticket=preview-won"]').click();
