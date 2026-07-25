@@ -6,7 +6,7 @@
     "check:syntax": "node scripts/check-syntax.mjs",
     "build": "node scripts/build-static.mjs",
     "verify:architecture": "node scripts/verify-architecture.mjs",
-    "test:components": "node scripts/test-storage-contract.mjs && node scripts/test-catalog-contract.mjs && node scripts/test-builder-contract.mjs",
+    "test:components": "node scripts/test-storage-contract.mjs && node scripts/test-ticket-state-model-contract.mjs && node scripts/test-catalog-contract.mjs && node scripts/test-builder-contract.mjs",
     "test:tracker": "node scripts/test-tracker-core-contract.mjs && node scripts/test-tracker-sources-contract.mjs && node scripts/test-tracker-evaluator-contract.mjs && node scripts/test-tracker-service-contract.mjs && node scripts/test-settlement-contract.mjs && node scripts/test-tracker-market-coverage.mjs",
     "test:regressions": "node scripts/test-canonical-doubleheader-binding.mjs && node scripts/test-canonical-ticket-id-binding.mjs && node scripts/test-canonical-action-menu-lifecycle.mjs",
     "verify:hosting": "node scripts/verify-canonical-hosting-contract.mjs",
