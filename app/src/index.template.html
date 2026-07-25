@@ -25,7 +25,7 @@
   <header class="top">
     <img class="logo" src="./{{LOGO}}" alt="Simon Sports Betting">
     <h1>PARLAY TRACKER</h1>
-    <p>Ticket Builder · Live Tracker · Sharing</p>
+    <p>BUILD · TRACK · SHARE</p>
   </header>
 
   <nav id="appTabs" class="appTabs" aria-label="Application views">
@@ -44,10 +44,18 @@
           <button id="importTicketBtn" class="ghost" type="button">Import Code</button>
           <a id="viewActiveBtn" class="button ghost" href="#view=active">View Active</a>
           <button id="newTicketBtn" type="button">New Ticket</button>
-          <button type="button" class="ghost" data-dashboard-action="refresh">Refresh</button>
-          <button type="button" class="ghost" data-dashboard-action="select-mode">Select</button>
-          <button type="button" class="ghost filterButton" data-dashboard-action="sort-filter" aria-label="Sort and filter tickets">Sort &amp; Filter</button>
         </div>
+      </div>
+      <div class="dashboardToolbar" data-dashboard-toolbar="normal">
+        <button type="button" class="ghost" data-dashboard-action="refresh">Refresh</button>
+        <button type="button" class="ghost" data-dashboard-action="expand-all">Expand All</button>
+        <button type="button" class="ghost" data-dashboard-action="select-mode">Select</button>
+        <button type="button" class="ghost filterButton" data-dashboard-action="sort-filter" aria-label="Sort and filter tickets"><span class="sortFilterGlyph" aria-hidden="true"><span></span><span></span><span></span></span></button>
+      </div>
+      <div class="dashboardToolbar dashboardSelectionToolbar hide" data-dashboard-toolbar="selection">
+        <button type="button" class="ghost" data-dashboard-action="select-all">Select All</button>
+        <button type="button" class="danger" data-dashboard-action="delete-selected" disabled>Delete Selected</button>
+        <button type="button" class="selectionCancel" data-dashboard-action="cancel-selection">Cancel</button>
       </div>
       <div id="ticketList" class="ticketList"></div>
     </section>
