@@ -29,8 +29,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Dashboard contract diagnostic
-        run: node scripts/test-dashboard-controller-contract.mjs
+      - name: Capture dashboard contract diagnostic
+        run: node scripts/test-dashboard-controller-contract.mjs > dashboard-contract.log 2>&1 || touch dashboard-contract.failed
+
+      - name: Upload dashboard contract diagnostic
+        uses: actions/upload-artifact@v4
+        with:
+          name: dashboard-contract-diagnostic
+          path: dashboard-contract.log
+          retention-days: 1
+
+      - name: Enforce dashboard contract diagnostic
+        run: test ! -f dashboard-contract.failed
 
       - name: Set up Node
         uses: actions/setup-node@v4
