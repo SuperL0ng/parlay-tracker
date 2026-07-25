@@ -80,8 +80,14 @@ jobs:
       - name: Controller lifecycle integration
         run: node scripts/test-controller-lifecycle-integration.mjs
 
-      - name: Regression contracts
-        run: npm run test:regressions
+      - name: Doubleheader binding regression
+        run: node scripts/test-canonical-doubleheader-binding.mjs
+
+      - name: Ticket ID binding regression
+        run: node scripts/test-canonical-ticket-id-binding.mjs
+
+      - name: Action-menu lifecycle regression
+        run: node scripts/test-canonical-action-menu-lifecycle.mjs
 
       - name: Hosting contracts
         run: npm run verify:hosting
