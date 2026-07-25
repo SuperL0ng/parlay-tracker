@@ -23,13 +23,15 @@ globalThis.document={
   querySelector:()=>null,querySelectorAll:()=>[]
 };
 globalThis.confirm=()=>true;
-const source=readFileSync(new URL('../app/src/scripts/dashboard-controller.js',import.meta.url),'utf8');
-vm.runInThisContext(source,{filename:'dashboard-controller.js'});
-const root={replaceChildren(){},appendChild(){},parentElement:{querySelector:()=>null},insertAdjacentElement(){}};
+vm.runInThisContext(readFileSync(new URL('../app/src/scripts/ticket-state-model.js',import.meta.url),'utf8'),{filename:'ticket-state-model.js'});
+vm.runInThisContext(readFileSync(new URL('../app/src/scripts/dashboard-controller.js',import.meta.url),'utf8'),{filename:'dashboard-controller.js'});
+const stateModel=globalThis.ParlayTicketStateModel;
+const root={replaceChildren(){},appendChild(){},parentElement:{querySelector:()=>null,querySelectorAll:()=>[]},insertAdjacentElement(){}};
 const status={textContent:''};
+const makeController=({storage={KEY:'k',load:()=>[]},tracker={}}={})=>new globalThis.DashboardController({storage,tracker,stateModel,root,status});
 
 {
-  const controller=new globalThis.DashboardController({storage:{KEY:'k',load:()=>[]},tracker:{},root,status});
+  const controller=makeController();
   controller.render=()=>{};
   controller.start();controller.start();
   assert.equal(docHub.count('click'),1,'Dashboard startup must be idempotent');
@@ -41,14 +43,14 @@ const status={textContent:''};
 }
 
 {
-  const controller=new globalThis.DashboardController({storage:{load:()=>[],find:()=>null},tracker:{},root,status});
+  const controller=makeController({storage:{load:()=>[],find:()=>null}});
   controller.state.actionMenuId='old';
   controller.showActions('missing',{getBoundingClientRect:()=>({right:10,bottom:10}),setAttribute(){}});
   assert.equal(controller.state.actionMenuId,'','A missing ticket must not retain action-menu ownership');
 }
 
 {
-  const controller=new globalThis.DashboardController({storage:{load:()=>[]},tracker:{},root,status});
+  const controller=makeController();
   let closedActions=0;controller.closeActions=()=>{closedActions++;controller.state.actionMenuId=''};
   controller.closeSortFilter=()=>{};
   controller.showSortFilter();
@@ -62,7 +64,7 @@ const status={textContent:''};
     load:()=>[],
     remove(){controller.onStorage({});return 2}
   };
-  controller=new globalThis.DashboardController({storage,tracker:{},root,status});
+  controller=makeController({storage});
   controller.render=()=>renderStates.push({selectMode:controller.state.selectMode,selected:controller.state.selectedIds.size});
   controller.state.selectMode=true;controller.state.selectedIds=new Set(['a','b']);
   controller.deleteSelected();
@@ -72,7 +74,7 @@ const status={textContent:''};
 }
 
 {
-  const controller=new globalThis.DashboardController({storage:{load:()=>[]},tracker:{},root,status});
+  const controller=makeController();
   let closed=0;controller.closeOverlays=()=>{closed++};document.hidden=true;
   controller.onVisibility();controller.onPageHide();
   assert.equal(closed,2,'Backgrounding or leaving the page must remove all dashboard overlays');
@@ -80,13 +82,22 @@ const status={textContent:''};
 }
 
 {
-  const controller=new globalThis.DashboardController({storage:{load:()=>[]},tracker:{},root,status});
+  const controller=makeController();
   const overlays=[{removed:false,remove(){this.removed=true}},{removed:false,remove(){this.removed=true}},{removed:false,remove(){this.removed=true}}];
   const originalAll=document.querySelectorAll,originalOne=document.querySelector;
   document.querySelectorAll=selector=>selector==='.sortFilterPanel,.sortFilterBackdrop'?overlays:[];document.querySelector=()=>null;
   controller.closeSortFilter();
   assert.ok(overlays.every(node=>node.removed),'Overlay cleanup must remove every stale Sort & Filter node, not only the first');
   document.querySelectorAll=originalAll;document.querySelector=originalOne;
+}
+
+{
+  const record={id:'ticket-735',status:'completed',liveOutcome:'PENDING',ticket:{title:'+735',type:'sgp',league:'MLB',game:'TEX@ATL',legs:[{label:'A',target:1},{label:'B',target:1},{label:'C',target:2},{label:'D',target:2}]},trackerSnapshot:{outcome:'PENDING',legs:[{state:'pending',value:1},{state:'pending',value:1},{state:'pending',value:2},{state:'pending',value:2}]},legSettlements:[{index:0,status:'WIN',actualValue:2},{index:1,status:'WIN',actualValue:1},{index:2,status:'WIN',actualValue:4},{index:3,status:'WIN',actualValue:6}]};
+  const controller=makeController({storage:{load:()=>[record]}});
+  const view=controller.recordsForRender()[0];
+  assert.equal(view.workflow,'COMPLETE','Dashboard must keep workflow state independent from outcome');
+  assert.equal(view.displayOutcome,'WON','Dashboard must derive the final result from terminal settlements');
+  assert.deepEqual([...view.legs].map(leg=>leg.actualValue),[2,1,4,6],'Dashboard must consume normalized actual values');
 }
 
 console.log('Dashboard controller contract passed.');
