@@ -45,6 +45,16 @@ const baseRecord={id:'ticket-1',status:'active',ticket:{title:'+100',date:'20260
 }
 
 {
+  const storage=storageFor([baseRecord]);
+  const evaluator={evaluateRecord:async record=>({...record,__evaluated:[{...record.ticket.legs[0],__live:{state:'win',value:'3/1'}}]})};
+  const settlement={reset(){},apply:async record=>{record.legSettlements=[{index:0,status:'WIN',settledAt:'2026-07-18T20:00:00.000Z'}];record.settledOutcome='WON';record.settledAt='2026-07-18T20:00:00.000Z';return record}};
+  const service=new TrackerService({storage,sources:{resetTrackingCaches(){},fetchScoreboards:async()=>[]},evaluator,settlement});
+  await service.refresh();const saved=storage.get()[0];
+  assert.equal(saved.legSettlements[0].actualValue,'3/1','A terminal evaluator value must persist beside the settlement result');
+  assert.equal(saved.trackerSnapshot.legs[0].value,'3/1','The tracker snapshot and settlement record must retain the same evaluated value');
+}
+
+{
   const storage=storageFor([baseRecord]);let release;
   const evaluator={evaluateRecord:record=>new Promise(resolve=>{release=()=>resolve({...record,__evaluated:[{...record.ticket.legs[0],__live:{state:'live',value:'1-0'}}]})})};
   const service=new TrackerService({storage,sources:{resetTrackingCaches(){},fetchScoreboards:async()=>[]},evaluator,settlement:{reset(){},apply:async record=>record}});
