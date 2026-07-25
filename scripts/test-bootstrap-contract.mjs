@@ -16,7 +16,7 @@ const klass=name=>class{
   async start(){counts.start[name]=(counts.start[name]||0)+1;return this}
   stop(){counts.stop[name]=(counts.stop[name]||0)+1}
 };
-globalThis.ParlayStorage={};globalThis.ParlayTrackerSources={};globalThis.ParlayTrackerEvaluator={};globalThis.ParlaySettlementService={};
+globalThis.ParlayStorage={};globalThis.ParlayTicketStateModel={normalize:record=>record};globalThis.ParlayTrackerSources={};globalThis.ParlayTrackerEvaluator={};globalThis.ParlaySettlementService={};
 globalThis.TrackerService=klass('tracker');globalThis.BuilderController=klass('builder');globalThis.SharingController=klass('sharing');globalThis.TicketViewController=klass('viewer');globalThis.DashboardController=klass('dashboard');globalThis.AppController=klass('app');
 const source=readFileSync(new URL('../app/src/scripts/bootstrap.js',import.meta.url),'utf8');
 vm.runInThisContext(source,{filename:'bootstrap.js'});const firstApi=globalThis.ParlayBootstrap;
@@ -30,6 +30,9 @@ const [first,second]=await Promise.all([firstApi.start(),secondApi.start()]);
 assert.equal(first,second,'Concurrent bootstrap calls must resolve to the same application instance');
 for(const name of ['tracker','builder','sharing','viewer','dashboard','app'])assert.equal(counts.construct[name],1,`${name} must be constructed once`);
 for(const name of ['builder','sharing','viewer','dashboard','app'])assert.equal(counts.start[name],1,`${name} must be started once`);
+assert.equal(first.stateModel,globalThis.ParlayTicketStateModel,'Bootstrap must publish the normalized state model used by Dashboard and Ticket View');
+assert.equal(first.viewer.args.stateModel,globalThis.ParlayTicketStateModel,'Ticket View must receive the normalized state model');
+assert.equal(first.dashboard.args.stateModel,globalThis.ParlayTicketStateModel,'Dashboard must receive the normalized state model');
 assert.equal(globalThis.parlayApp,first,'Successful bootstrap must publish the one application instance');
 await globalThis.ParlayBootstrap.stop();
 for(const name of ['app','dashboard','viewer','sharing','builder'])assert.equal(counts.stop[name],1,`${name} must be stopped during teardown`);
