@@ -46,14 +46,14 @@ vm.runInThisContext(dashboardSource,{filename:'app/src/scripts/dashboard-control
 
 const records=storage.load().slice(0,4);
 const dashboard=new globalThis.DashboardController({storage:{load:()=>records,find:id=>records.find(record=>String(record.id)===String(id))||null},tracker:{},stateModel,root:{},status:{}});
-assert.deepEqual(dashboard.recordsForRender().map(record=>String(record.id)),['2000','1718','1043','1969'],'Default dashboard order must sort by saved time before rendering');
+assert.deepEqual(dashboard.recordsForRender().map(view=>String(view.id)),['2000','1718','1043','1969'],'Default dashboard order must sort by saved time before rendering');
 dashboard.state.filter='active';
-assert.deepEqual(dashboard.recordsForRender().map(record=>String(record.id)),['2000','1718'],'Active filtering must preserve stable ticket ownership');
+assert.deepEqual(dashboard.recordsForRender().map(view=>String(view.id)),['2000','1718'],'Active filtering must preserve stable ticket ownership');
 dashboard.state.filter='all';dashboard.state.sort='settled';dashboard.state.direction='desc';
-assert.deepEqual(dashboard.recordsForRender().map(record=>String(record.id)),['1043','1969'],'Settlement sorting must exclude unsettled tickets and preserve ID ownership');
+assert.deepEqual(dashboard.recordsForRender().map(view=>String(view.id)),['1043','1969'],'Settlement sorting must exclude unsettled tickets and preserve ID ownership');
 
 dashboard.state.sort='saved';dashboard.state.direction='desc';dashboard.state.expandedIds.add('1718');dashboard.state.selectedIds.add('1718');dashboard.state.selectMode=true;
-const card=dashboard.ticketCard(records.find(record=>String(record.id)==='1718'));
+const card=dashboard.ticketCard(dashboard.view(records.find(record=>String(record.id)==='1718')));
 assert.equal(card.dataset.ticketId,'1718','Rendered card ownership must be bound to the ticket ID');
 assert.match(card.innerHTML,/href="#ticket=1718"/,'View links must target the ticket ID');
 assert.match(card.innerHTML,/data-ticket-id="1718"/,'Ticket controls must carry the ticket ID');
