@@ -13,14 +13,16 @@ const assets=new Set();
 for(const build of Object.values(config)){
   for(const value of [build.icon,build.touchIcon,build.shareImage,build.logo,...(build.extraAssets||[]),...(build.manifestIcons||[]).map(icon=>icon.src)])assets.add(value);
 }
-const allowedRoot=new Set(['.gitignore','README.md','package.json','package-lock.json','playwright.config.mjs',...assets]);
+const allowedRoot=new Set(['.gitignore','README.md','ARCHITECTURE_RECOVERY.md','package.json','package-lock.json','playwright.config.mjs',...assets]);
 const allowedTrees=['app/','architecture/','docs/','scripts/','tests/'];
+const allowedGithubFiles=new Set(['.github/workflows/canonical-recovery-ci.yml']);
 for(const path of tracked){
   if(!path.includes('/'))assert.ok(allowedRoot.has(path),'Unexpected tracked root file: '+path);
+  else if(path.startsWith('.github/'))assert.ok(allowedGithubFiles.has(path),'Unexpected GitHub automation file: '+path);
   else assert.ok(allowedTrees.some(prefix=>path.startsWith(prefix)),'Unexpected tracked tree: '+path);
 }
-assert.deepEqual(tracked.filter(path=>!path.includes('/')).sort(),[...allowedRoot].sort(),'Tracked root must contain only canonical metadata and required build assets');
-assert.equal(tracked.some(path=>path.startsWith('.github/')),false,'Historical GitHub patch or verification machinery remains tracked');
+assert.deepEqual(tracked.filter(path=>!path.includes('/')).sort(),[...allowedRoot].sort(),'Tracked root must contain only canonical metadata, recovery governance, and required build assets');
+assert.deepEqual(tracked.filter(path=>path.startsWith('.github/')).sort(),[...allowedGithubFiles].sort(),'Only the permanent canonical recovery workflow may remain tracked');
 assert.equal(tracked.some(path=>path.startsWith('png-icon-control/')),false,'Historical icon test deployment remains tracked');
 const bannedNames=['show-legs-label-fix.js','ticket-dashboard-details-v54.js','dashboard-layout-v56.js','dashboard-refresh-v58.js','dashboard-polish-v63.js','dashboard-more-actions-v64.js','dashboard-sort-filter-v78.js','mlb-live-loader.js','navigation-links-v24.js','ticket-sharing.js','library-backup.js','test-doubleheader-game-binding.mjs','test-ticket-id-binding-regression.mjs','verify-hosting-contract.mjs'];
 for(const name of bannedNames)assert.equal(tracked.some(path=>path.endsWith(name)),false,'Retired file remains tracked: '+name);
