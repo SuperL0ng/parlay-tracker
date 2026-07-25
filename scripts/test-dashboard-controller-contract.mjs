@@ -74,6 +74,22 @@ const makeController=({storage={KEY:'k',load:()=>[]},tracker={}}={})=>new global
 }
 
 {
+  const records=[{id:'a',status:'active',ticket:{type:'straight',legs:[{}]}},{id:'b',status:'active',ticket:{type:'straight',legs:[{}]}}];
+  const controller=makeController({storage:{load:()=>records}});controller.render=()=>{};
+  controller.toggleExpandAll();
+  assert.deepEqual([...controller.state.expandedIds].sort(),['a','b'],'Expand All must own expansion by visible ticket ID');
+  controller.toggleExpandAll();
+  assert.equal(controller.state.expandedIds.size,0,'Collapse All must clear visible expansion ownership');
+  controller.state.selectMode=true;controller.toggleSelectAll();
+  assert.deepEqual([...controller.state.selectedIds].sort(),['a','b'],'Select All must select the currently visible ticket IDs');
+  controller.toggleSelectAll();
+  assert.equal(controller.state.selectedIds.size,0,'Deselect All must clear the visible selection');
+  controller.state.selectedIds.add('a');controller.cancelSelection(false);
+  assert.equal(controller.state.selectMode,false,'Cancel must leave selection mode');
+  assert.equal(controller.state.selectedIds.size,0,'Cancel must clear selected IDs');
+}
+
+{
   const controller=makeController();
   let closed=0;controller.closeOverlays=()=>{closed++};document.hidden=true;
   controller.onVisibility();controller.onPageHide();
@@ -92,12 +108,24 @@ const makeController=({storage={KEY:'k',load:()=>[]},tracker={}}={})=>new global
 }
 
 {
-  const record={id:'ticket-735',status:'completed',liveOutcome:'PENDING',ticket:{title:'+735',type:'sgp',league:'MLB',game:'TEX@ATL',legs:[{label:'A',target:1},{label:'B',target:1},{label:'C',target:2},{label:'D',target:2}]},trackerSnapshot:{outcome:'PENDING',legs:[{state:'pending',value:1},{state:'pending',value:1},{state:'pending',value:2},{state:'pending',value:2}]},legSettlements:[{index:0,status:'WIN',actualValue:2},{index:1,status:'WIN',actualValue:1},{index:2,status:'WIN',actualValue:4},{index:3,status:'WIN',actualValue:6}]};
+  const record={id:'ticket-735',status:'completed',sportsbook:'DraftKings',liveOutcome:'PENDING',ticket:{title:'+735',type:'sgp',league:'MLB',game:'TEX@ATL',legs:[{label:'A',target:1},{label:'B',target:1},{label:'C',target:2},{label:'D',target:2}]},trackerSnapshot:{outcome:'PENDING',legs:[{state:'pending',value:1},{state:'pending',value:1},{state:'pending',value:2},{state:'pending',value:2}]},legSettlements:[{index:0,status:'WIN',actualValue:2},{index:1,status:'WIN',actualValue:1},{index:2,status:'WIN',actualValue:4},{index:3,status:'WIN',actualValue:6}]};
   const controller=makeController({storage:{load:()=>[record]}});
   const view=controller.recordsForRender()[0];
   assert.equal(view.workflow,'COMPLETE','Dashboard must keep workflow state independent from outcome');
   assert.equal(view.displayOutcome,'WON','Dashboard must derive the final result from terminal settlements');
   assert.deepEqual([...view.legs].map(leg=>leg.actualValue),[2,1,4,6],'Dashboard must consume normalized actual values');
+  const card=controller.ticketCard(view);
+  assert.match(card.innerHTML,/DRAFTKINGS/,'Sportsbook badges must retain uppercase display text');
+  assert.match(card.innerHTML,/workflowBadge">COMPLETE/,'Workflow and result must render as separate concepts');
+  assert.match(card.innerHTML,/stateBadge">WON/,'Final result must remain independently visible');
+}
+
+{
+  const record={id:'parlay-1',status:'active',ticket:{title:'+200',type:'parlay',league:'MLB',legs:[{game:'ATL@NYM'},{game:'LAD@SF'}]}};
+  const controller=makeController({storage:{load:()=>[record]}});
+  const card=controller.ticketCard(controller.view(record));
+  assert.doesNotMatch(card.innerHTML,/ATL@NYM/,'A multi-game parlay must not infer ticket metadata from one leg');
+  assert.match(card.innerHTML,/PARLAY · MLB · 2 LEGS/,'Parlay metadata must retain type, league, and leg count');
 }
 
 console.log('Dashboard controller contract passed.');
