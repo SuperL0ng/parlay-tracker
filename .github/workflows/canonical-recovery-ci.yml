@@ -29,6 +29,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Dashboard contract diagnostic
+        run: node scripts/test-dashboard-controller-contract.mjs
+
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
