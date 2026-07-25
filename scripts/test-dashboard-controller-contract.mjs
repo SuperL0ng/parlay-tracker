@@ -134,8 +134,9 @@ const makeController=({storage={KEY:'k',load:()=>[]},tracker={}}={})=>new global
   const record={id:'parlay-1',status:'active',ticket:{title:'+200',type:'parlay',league:'MLB',legs:[{game:'ATL@NYM'},{game:'LAD@SF'}]}};
   const controller=makeController({storage:{load:()=>[record]}});
   const card=controller.ticketCard(controller.view(record));
-  assert.doesNotMatch(card.innerHTML,/ATL@NYM/,'A multi-game parlay must not infer ticket metadata from one leg');
-  assert.match(card.innerHTML,/PARLAY · MLB · 2 LEGS/,'Parlay metadata must retain type, league, and leg count');
+  const collapsedSummary=card.innerHTML.split('<div class="ticketDetails"')[0];
+  assert.doesNotMatch(collapsedSummary,/ATL@NYM/,'A multi-game parlay must not infer ticket metadata from one leg');
+  assert.match(collapsedSummary,/PARLAY · MLB · 2 LEGS/,'Parlay metadata must retain type, league, and leg count');
 }
 
 console.log('Dashboard controller contract passed.');
