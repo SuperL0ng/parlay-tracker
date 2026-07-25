@@ -62,8 +62,23 @@ jobs:
       - name: Tracker contracts
         run: npm run test:tracker
 
-      - name: Controller contracts
-        run: npm run test:controllers
+      - name: Sharing controller
+        run: node scripts/test-sharing-controller-contract.mjs
+
+      - name: Ticket View controller
+        run: node scripts/test-ticket-view-controller-contract.mjs
+
+      - name: Dashboard controller
+        run: node scripts/test-dashboard-controller-contract.mjs
+
+      - name: App controller
+        run: node scripts/test-app-controller-contract.mjs
+
+      - name: Bootstrap controller
+        run: node scripts/test-bootstrap-contract.mjs
+
+      - name: Controller lifecycle integration
+        run: node scripts/test-controller-lifecycle-integration.mjs
 
       - name: Regression contracts
         run: npm run test:regressions
