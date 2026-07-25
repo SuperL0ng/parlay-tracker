@@ -5,15 +5,16 @@
   const TRACKER_FIELDS=['liveOutcome','trackerSnapshot','trackerUpdatedAt','trackerRefreshState','trackerUnavailableAt','trackerError','settlementError','legSettlements','settledAt','settlementSource','settlementReason','settlementLegIndexes','settledOutcome','settlementPending','autoCompleted'];
 
   class TrackerService {
-    constructor({storage,sources,evaluator,settlement}){this.storage=storage;this.sources=sources;this.evaluator=evaluator;this.settlement=settlement;this.running=false;}
+    constructor({storage,sources,evaluator,settlement,stateModel}){this.storage=storage;this.sources=sources;this.evaluator=evaluator;this.settlement=settlement;this.stateModel=stateModel;this.running=false;}
     clean(value){return String(value??'').trim();}
     clone(value){return this.storage.clone?this.storage.clone(value):JSON.parse(JSON.stringify(value));}
     idSet(value){if(value==null)return null;const values=typeof value==='string'||typeof value==='number'?[value]:[...value];return new Set(values.map(item=>String(item)));}
     fingerprint(record){try{return JSON.stringify(record?.ticket||record?.canonical||null);}catch{return'';}}
     outcomeFor(legs){const state=window.ParlayTrackerCore.ticketState((legs||[]).map(leg=>leg.__live?.state||'pending'));return({win:'WON',loss:'LOST',push:'PUSH',live:'LIVE',suspended:'SUSPENDED',unavailable:'UNAVAILABLE',pending:'PENDING'})[state]||'PENDING';}
     dates(records){const values=[];for(const record of records){const ticket=record.ticket||record.canonical||{};if(ticket.date)values.push(ticket.date);for(const leg of ticket.legs||[])if(leg.date)values.push(leg.date);}return[...new Set(values.map(value=>String(value).replace(/\D/g,'').slice(0,8)).filter(value=>value.length===8))];}
-    snapshot(record,evaluated,outcome,updatedAt){const ticket=record.ticket||record.canonical||{},legs=(evaluated.__evaluated||[]).map(leg=>({label:leg.label||leg.type||'Untitled leg',state:leg.__live?.state||'pending',value:leg.__live?.value||'',valueClass:leg.__live?.valueClass||'',game:window.ParlayTrackerCore.legGame(ticket,leg),gameMeta:leg.__game?window.ParlayTrackerCore.baseGameMeta(leg.__game):'',team:leg.team||'',player:leg.player||'',target:leg.target??''}));return{outcome,updatedAt,legs};}
+    snapshot(record,evaluated,outcome,updatedAt){const ticket=record.ticket||record.canonical||{},legs=(evaluated.__evaluated||[]).map(leg=>({label:leg.label||leg.type||'Untitled leg',state:leg.__live?.state||'pending',value:leg.__live?.value??'',valueClass:leg.__live?.valueClass||'',game:window.ParlayTrackerCore.legGame(ticket,leg),gameMeta:leg.__game?window.ParlayTrackerCore.baseGameMeta(leg.__game):'',team:leg.team||'',player:leg.player||'',target:leg.target??''}));return{outcome,updatedAt,legs};}
     clearSettlement(record){for(const field of ['settledAt','settlementSource','settlementReason','settlementLegIndexes','settledOutcome','settlementPending','legSettlements','settlementError'])delete record[field];}
+    attachActualValues(record){const snapshotLegs=Array.isArray(record.trackerSnapshot?.legs)?record.trackerSnapshot.legs:[];if(!Array.isArray(record.legSettlements))return;record.legSettlements=record.legSettlements.map(item=>{const leg=snapshotLegs[Number(item.index)],value=leg?.value;if(value===undefined||value===null||value==='')return item;return{...item,actualValue:value};});}
     mergeProcessed(latest,initial,processed){
       for(const field of TRACKER_FIELDS){if(Object.prototype.hasOwnProperty.call(processed,field))latest[field]=this.clone(processed[field]);else delete latest[field];}
       if(latest.status===initial.status&&Boolean(latest.manualActiveOverride)===Boolean(initial.manualActiveOverride))latest.status=processed.status;
@@ -40,7 +41,7 @@
             record.liveOutcome=outcome;record.trackerSnapshot=this.snapshot(record,evaluated,outcome,now);
             if(FINAL_OUTCOMES.has(outcome)){
               if(this.clean(record.status).toLowerCase()!=='completed'&&!record.manualActiveOverride){record.status='completed';record.autoCompleted=true;}
-              try{await this.settlement.apply(record,outcome);delete record.settlementError;}catch(error){record.settlementError=error?.message||String(error);errors.push({id:String(record.id),stage:'settlement',message:record.settlementError});}
+              try{await this.settlement.apply(record,outcome);this.attachActualValues(record);delete record.settlementError;}catch(error){record.settlementError=error?.message||String(error);errors.push({id:String(record.id),stage:'settlement',message:record.settlementError});}
             }else if(outcome==='LIVE'&&record.autoCompleted&&!record.manualActiveOverride){record.status='active';record.autoCompleted=false;this.clearSettlement(record);}
           }
           processed.push({initial,record});
