@@ -13,6 +13,7 @@
   function workflow(record){return clean(record?.status).toLowerCase()==='completed'?'COMPLETE':'ACTIVE'}
 
   function settlementByIndex(record){const map=new Map();for(const item of asArray(record?.legSettlements)){const index=Number(item?.index);if(Number.isInteger(index)&&index>=0)map.set(index,item)}return map}
+  function settlementLength(settlements){let length=0;for(const index of settlements.keys())length=Math.max(length,index+1);return length}
 
   function deriveFinalOutcome(legs){
     if(!legs.length)return'';
@@ -52,7 +53,7 @@
     const source=record&&typeof record==='object'?record:{};
     const ticket=source.ticket&&typeof source.ticket==='object'?source.ticket:source.canonical&&typeof source.canonical==='object'?source.canonical:{};
     const settlements=settlementByIndex(source);
-    const count=Math.max(asArray(ticket.legs).length,asArray(source.trackerSnapshot?.legs).length,settlements.size);
+    const count=Math.max(asArray(ticket.legs).length,asArray(source.trackerSnapshot?.legs).length,settlementLength(settlements));
     const legs=Array.from({length:count},(_,index)=>normalizeLeg(source,ticket,index,settlements));
     const derived=deriveFinalOutcome(legs);
     const explicitFinal=FINAL_OUTCOMES.has(upper(source.settledOutcome))?upper(source.settledOutcome):'';
