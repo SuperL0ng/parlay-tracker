@@ -21,11 +21,12 @@ globalThis.location={href:'https://example.test/',hash:''};
 globalThis.history={replaceState(){}};
 globalThis.CustomEvent=class CustomEvent{constructor(type,options={}){this.type=type;this.detail=options.detail}};
 globalThis.close=()=>{};globalThis.closed=false;
-const source=readFileSync(new URL('../app/src/scripts/ticket-view-controller.js',import.meta.url),'utf8');
-vm.runInThisContext(source,{filename:'ticket-view-controller.js'});
+vm.runInThisContext(readFileSync(new URL('../app/src/scripts/ticket-state-model.js',import.meta.url),'utf8'),{filename:'ticket-state-model.js'});
+vm.runInThisContext(readFileSync(new URL('../app/src/scripts/ticket-view-controller.js',import.meta.url),'utf8'),{filename:'ticket-view-controller.js'});
+const stateModel=globalThis.ParlayTicketStateModel;
 
 {
-  const controller=new globalThis.TicketViewController({storage:{load:()=>[]},tracker:{refresh:async()=>({})}});
+  const controller=new globalThis.TicketViewController({storage:{load:()=>[]},tracker:{refresh:async()=>({})},stateModel});
   controller.start();controller.start();
   assert.equal(root.count('click'),1,'Ticket view startup must be idempotent');
   assert.equal(win.count('parlay:tracker-updated'),1,'Tracker listener must be registered once');
@@ -38,7 +39,7 @@ vm.runInThisContext(source,{filename:'ticket-view-controller.js'});
 {
   const resolvers=new Map();
   const tracker={refresh:({ids})=>new Promise(resolve=>resolvers.set(String(ids[0]),resolve))};
-  const controller=new globalThis.TicketViewController({storage:{load:()=>[]},tracker});
+  const controller=new globalThis.TicketViewController({storage:{load:()=>[]},tracker,stateModel});
   const renders=[];controller.render=status=>renders.push({mode:controller.mode?.id||'',status});
   controller.mode={kind:'ticket',id:'A'};const first=controller.refresh();
   controller.mode={kind:'ticket',id:'B'};const second=controller.refresh();
@@ -49,7 +50,7 @@ vm.runInThisContext(source,{filename:'ticket-view-controller.js'});
 }
 
 {
-  const controller=new globalThis.TicketViewController({storage:{load:()=>[{id:'B',status:'active',ticket:{legs:[]}}]},tracker:{refresh:async()=>({})}});
+  const controller=new globalThis.TicketViewController({storage:{load:()=>[{id:'B',status:'active',ticket:{legs:[]}}]},tracker:{refresh:async()=>({})},stateModel});
   controller.mode={kind:'ticket',id:'B'};let renders=0;controller.render=()=>{renders++};
   controller.onUpdated({detail:{ids:['A']}});
   assert.equal(renders,0,'Unrelated tracker updates must not repaint a standalone ticket');
@@ -59,10 +60,18 @@ vm.runInThisContext(source,{filename:'ticket-view-controller.js'});
 }
 
 {
-  const controller=new globalThis.TicketViewController({storage:{load:()=>[]},tracker:{refresh:async()=>({})}});
+  const controller=new globalThis.TicketViewController({storage:{load:()=>[]},tracker:{refresh:async()=>({})},stateModel});
   controller.mode={kind:'active'};let renders=0;controller.render=()=>{renders++};
   controller.onUpdated({detail:{ids:['just-completed']}});
   assert.equal(renders,1,'Active view must repaint when a tracked ticket leaves the active set');
+}
+
+{
+  const record={id:'ticket-735',status:'completed',liveOutcome:'PENDING',ticket:{title:'+735',type:'sgp',league:'MLB',game:'TEX@ATL',legs:[{label:'A',target:1},{label:'B',target:1},{label:'C',target:2},{label:'D',target:2}]},trackerSnapshot:{outcome:'PENDING',legs:[{state:'pending',value:1},{state:'pending',value:1},{state:'pending',value:2},{state:'pending',value:2}]},legSettlements:[{index:0,status:'WIN',actualValue:2},{index:1,status:'WIN',actualValue:1},{index:2,status:'WIN',actualValue:4},{index:3,status:'WIN',actualValue:6}]};
+  const controller=new globalThis.TicketViewController({storage:{load:()=>[record]},tracker:{refresh:async()=>({})},stateModel});
+  controller.mode={kind:'ticket',id:'ticket-735'};controller.render();
+  assert.match(root.innerHTML,/TICKET WON/,'Ticket View must derive a final ticket result from terminal leg settlements');
+  for(const value of ['2','1','4','6'])assert.match(root.innerHTML,new RegExp(`>${value}<`),'Ticket View must render normalized actual values');
 }
 
 console.log('Ticket view controller contract passed.');
