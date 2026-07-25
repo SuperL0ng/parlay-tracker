@@ -41,8 +41,38 @@ jobs:
       - name: Install browser
         run: npx playwright install --with-deps chromium
 
-      - name: Run canonical suite
-        run: npm test
+      - name: Syntax
+        run: npm run check:syntax
+
+      - name: Repository cleanliness
+        run: npm run verify:cleanliness
+
+      - name: Build
+        run: npm run build
+
+      - name: Architecture
+        run: npm run verify:architecture
+
+      - name: Deterministic output
+        run: npm run verify:generated
+
+      - name: Component contracts
+        run: npm run test:components
+
+      - name: Tracker contracts
+        run: npm run test:tracker
+
+      - name: Controller contracts
+        run: npm run test:controllers
+
+      - name: Regression contracts
+        run: npm run test:regressions
+
+      - name: Hosting contracts
+        run: npm run verify:hosting
+
+      - name: Browser suite
+        run: npm run test:browser
 
       - name: Upload browser diagnostics
         if: failure()
