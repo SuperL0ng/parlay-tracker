@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 
 const storageSource=readFileSync(new URL('../app/src/scripts/storage.js',import.meta.url),'utf8');
+const stateModelSource=readFileSync(new URL('../app/src/scripts/ticket-state-model.js',import.meta.url),'utf8');
 const dashboardSource=readFileSync(new URL('../app/src/scripts/dashboard-controller.js',import.meta.url),'utf8');
 const memory=new Map();
 
@@ -16,8 +17,10 @@ globalThis.localStorage={
 globalThis.CustomEvent=class CustomEvent{constructor(type,options={}){this.type=type;this.detail=options.detail}};
 globalThis.dispatchEvent=()=>true;
 vm.runInThisContext(storageSource,{filename:'app/src/scripts/storage.js'});
+vm.runInThisContext(stateModelSource,{filename:'app/src/scripts/ticket-state-model.js'});
 
 const storage=globalThis.ParlayStorage;
+const stateModel=globalThis.ParlayTicketStateModel;
 localStorage.setItem(storage.KEY,JSON.stringify([
   {id:'2000',status:'active',savedAt:'2026-07-18T04:00:00Z',ticket:{title:'A',type:'straight',legs:[{type:'ml'}]}},
   {id:'1718',status:'active',savedAt:'2026-07-18T03:00:00Z',ticket:{title:'B',type:'straight',legs:[{type:'ml'}]}},
@@ -42,7 +45,7 @@ globalThis.document={
 vm.runInThisContext(dashboardSource,{filename:'app/src/scripts/dashboard-controller.js'});
 
 const records=storage.load().slice(0,4);
-const dashboard=new globalThis.DashboardController({storage:{load:()=>records,find:id=>records.find(record=>String(record.id)===String(id))||null},tracker:{},root:{},status:{}});
+const dashboard=new globalThis.DashboardController({storage:{load:()=>records,find:id=>records.find(record=>String(record.id)===String(id))||null},tracker:{},stateModel,root:{},status:{}});
 assert.deepEqual(dashboard.recordsForRender().map(record=>String(record.id)),['2000','1718','1043','1969'],'Default dashboard order must sort by saved time before rendering');
 dashboard.state.filter='active';
 assert.deepEqual(dashboard.recordsForRender().map(record=>String(record.id)),['2000','1718'],'Active filtering must preserve stable ticket ownership');
