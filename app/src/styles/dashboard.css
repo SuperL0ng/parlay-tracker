@@ -74,6 +74,7 @@
 .dashboardLeg[data-leg-state="lost"]::before{background:#d52c42}
 .dashboardLeg[data-leg-state="live"]::before{background:#d39a24}
 .dashboardLeg[data-leg-state="push"]::before{background:#c69c19}
+.dashboardLeg[data-leg-state="pending"]::before{background:#9aa4b2}
 .dashboardLeg[data-leg-state="suspended"]::before,.dashboardLeg[data-leg-state="unavailable"]::before{background:#a4639a}
 .dashboardLegLabel{font-size:13px;line-height:1.16;font-weight:850}
 .dashboardLegMeta{margin-top:2px;color:#647080;font-size:10px;line-height:1.2}
