@@ -1,28 +1,29 @@
 /* Canonical My Tickets visual parity layer.
-   LIVE remains the visual reference; canonical controllers retain behavior ownership. */
+   The user-approved collapsed dashboard is the visual target; canonical controllers retain behavior ownership. */
 
 /* Hero and primary navigation */
-.top{padding:10px 12px 9px;margin-bottom:10px}
-.logo{width:min(174px,45vw);margin:0 auto 3px;filter:drop-shadow(0 6px 9px rgba(0,0,0,.22))}
-.top h1{font-size:21px;line-height:1.08;letter-spacing:.14em}
-.top p{margin-top:3px;font-size:8px;letter-spacing:.24em}
-.appTabs{gap:8px;margin-bottom:10px}
-.appTabs button{height:36px;min-height:36px;padding:5px 8px;font-size:12px;line-height:1}
-.appTabs .active{outline:2px solid color-mix(in srgb,var(--accent) 72%,#fff);outline-offset:1px}
+.top{padding:7px 12px 7px;margin-bottom:9px}
+.logo{width:min(210px,54vw);max-height:56px;object-fit:contain;margin:0 auto 1px;filter:drop-shadow(0 5px 8px rgba(0,0,0,.2))}
+.top h1{margin-top:0;font-size:23px;line-height:1.02;letter-spacing:.13em;color:#27313d}
+.top p{margin-top:2px;font-size:8.5px;letter-spacing:.23em}
+.appTabs{gap:7px;margin-bottom:9px}
+.appTabs button{height:34px;min-height:34px;padding:5px 8px;font-size:12.5px;line-height:1}
+.appTabs .active{outline:2px solid color-mix(in srgb,var(--accent) 78%,#fff);outline-offset:1px}
 
 /* Dashboard heading and top actions */
-.dashboardHeader{display:grid;grid-template-columns:minmax(118px,.9fr) minmax(0,2.7fr);gap:9px;align-items:stretch}
+.dashboardHeader{display:grid;grid-template-columns:minmax(112px,.86fr) minmax(0,2.75fr);gap:8px;align-items:stretch}
 .dashboardHeading{display:flex;flex-direction:column;justify-content:center;min-width:0}
-.dashboardHeader h2{margin:0;color:#4f5967;font-size:18px;line-height:1.12;letter-spacing:.1em}
-.dashboardStatus{margin:4px 0 0;color:#657080;font-size:9px;font-weight:750;white-space:nowrap}
-.dashboardActions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;min-width:0}
-.dashboardActions button,.dashboardActions .button{display:flex;align-items:center;justify-content:center;width:100%;min-width:0;min-height:34px;height:34px;padding:4px 4px;font-size:8.5px;line-height:1.08;white-space:normal}
+.dashboardHeader h2{margin:0;color:#4b5563;font-size:18px;line-height:1.08;letter-spacing:.095em}
+.dashboardStatus,.dashboardUpdated{margin:3px 0 0;color:#657080;font-size:8.5px;font-weight:760;line-height:1.12;white-space:nowrap}
+.dashboardUpdated{margin-top:2px;color:#737d89;font-size:7.7px}
+.dashboardActions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;min-width:0}
+.dashboardActions button,.dashboardActions .button{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;min-width:0;min-height:38px;height:38px;padding:3px 4px;font-size:8.5px;line-height:1.03;white-space:normal}
 
-/* LIVE-like thin toolbar, with a square sort control */
-.dashboardToolbar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) 34px;gap:5px;margin-top:8px}
-.dashboardToolbar button{width:100%;height:25px;min-height:25px;padding:2px 5px;font-size:8px;line-height:1;white-space:nowrap;letter-spacing:.035em}
+/* Thin toolbar with a square sort control */
+.dashboardToolbar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) 33px;gap:4px;margin-top:7px}
+.dashboardToolbar button{width:100%;height:24px;min-height:24px;padding:2px 5px;font-size:7.8px;line-height:1;white-space:nowrap;letter-spacing:.035em}
 .dashboardSelectionToolbar{grid-template-columns:repeat(3,minmax(0,1fr))}
-.dashboardSelectionToolbar .selectionCancel{font-size:8px}
+.dashboardSelectionToolbar .selectionCancel{font-size:8px;color:#8a651b}
 .sortFilterGlyph{display:grid;gap:3px;width:16px;margin:auto}
 .sortFilterGlyph span{display:block;height:2px;border-radius:2px;background:currentColor}
 .sortFilterGlyph span:nth-child(2){width:11px}
@@ -30,39 +31,50 @@
 .filterButton.activeFilter{outline:2px solid var(--accent);outline-offset:1px}
 
 /* Ticket cards */
-.ticketList{display:grid;gap:8px;margin-top:9px}
-.savedTicket{position:relative;padding:8px 8px 7px 10px;border:1px solid rgba(255,255,255,.82);border-left:4px solid #9aa4b2;border-radius:10px;background:linear-gradient(180deg,rgba(255,255,255,.82),rgba(214,221,231,.72));box-shadow:inset 0 1px 0 rgba(255,255,255,.92),0 4px 10px rgba(0,0,0,.11)}
+.ticketList{display:grid;gap:7px;margin-top:8px}
+.savedTicket{position:relative;padding:7px 7px 6px 9px;border:1px solid rgba(255,255,255,.82);border-left:4px solid #9aa4b2;border-radius:9px;background:linear-gradient(180deg,rgba(255,255,255,.82),rgba(214,221,231,.72));box-shadow:inset 0 1px 0 rgba(255,255,255,.92),0 3px 8px rgba(0,0,0,.1)}
 .savedTicket[data-outcome="LIVE"]{border-left-color:#d39a24}
 .savedTicket[data-outcome="WON"]{border-left-color:#1f9a43}
 .savedTicket[data-outcome="LOST"]{border-left-color:#d52c42}
 .savedTicket[data-outcome="PUSH"]{border-left-color:#c69c19}
 .savedTicket[data-outcome="SUSPENDED"],.savedTicket[data-outcome="UNAVAILABLE"]{border-left-color:#a4639a}
 .savedTicket.selectable{padding-left:39px}
-.ticketSelectBox{display:none;position:absolute;left:10px;top:13px;width:19px;height:19px;padding:0;box-shadow:none}
+.ticketSelectBox{display:none;position:absolute;left:10px;top:12px;width:19px;height:19px;padding:0;box-shadow:none}
 .savedTicket.selectable .ticketSelectBox{display:block}
-.savedTicketTop{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.savedTicketTop{display:flex;align-items:flex-start;justify-content:space-between;gap:7px}
 .savedTicketTop>div{min-width:0;flex:1}
-.savedTitleRow{display:flex;align-items:center;flex-wrap:wrap;gap:5px;min-width:0;min-height:21px}
-.savedTitleRow h3{order:0;margin:0;min-width:0;color:#171d25;font-size:17px;line-height:1.05;font-weight:950;letter-spacing:.01em;overflow-wrap:anywhere}
-.bookBadge{order:1;display:inline-flex;align-items:center;min-height:19px;padding:3px 6px;border-radius:6px;font-size:8px;line-height:1;font-weight:900;letter-spacing:.08em;box-shadow:inset 0 1px 0 rgba(255,255,255,.7)}
-.workflowBadge,.stateBadge{display:inline-flex;align-items:center;min-height:19px;padding:3px 6px;border-radius:6px;font-size:7.5px;line-height:1;font-weight:950;letter-spacing:.065em}
-.workflowBadge{order:2;color:#56606d;background:rgba(255,255,255,.25);border:1px solid rgba(91,103,118,.4);box-shadow:none}
-.stateBadge{order:3;border:1px solid rgba(255,255,255,.5);background:#d7dde6;color:#4f5966;box-shadow:inset 0 1px 0 rgba(255,255,255,.55)}
-.savedTicket[data-workflow="COMPLETE"] .workflowBadge{color:#d4dbe5;background:#3f4855;border-color:#303844;box-shadow:inset 0 1px 0 rgba(255,255,255,.16)}
-.savedTicket[data-outcome="WON"] .stateBadge{background:#a9e2b5;color:#0c6128}
-.savedTicket[data-outcome="LOST"] .stateBadge{background:#f2b5bc;color:#861629}
-.savedTicket[data-outcome="PUSH"] .stateBadge{background:#f2d46f;color:#6b5100}
-.savedTicket[data-outcome="LIVE"] .stateBadge{background:#f1d07a;color:#694700}
-.savedTicket[data-outcome="PENDING"] .stateBadge{background:#d9dfe7;color:#4f5966}
-.savedTicket[data-outcome="SUSPENDED"] .stateBadge,.savedTicket[data-outcome="UNAVAILABLE"] .stateBadge{background:#d4cbd3;color:#655363}
-.savedMeta{margin-top:4px;color:#697482;font-size:9px;font-weight:800;line-height:1.22;letter-spacing:.03em;text-transform:uppercase}
-.savedTimes{margin-top:3px;color:#596372;font-size:8px;font-weight:750;line-height:1.2}
+.savedTitleRow{display:flex;align-items:center;flex-wrap:wrap;gap:4px;min-width:0;min-height:20px}
+.savedTitleRow h3{margin:0;min-width:0;color:#171d25;font-size:17px;line-height:1.03;font-weight:950;letter-spacing:.01em;overflow-wrap:anywhere}
+.workflowBadge,.stateBadge,.bookBadge{display:inline-flex;align-items:center;justify-content:center;min-height:18px;padding:3px 6px;border-radius:5px;line-height:1;font-weight:950;white-space:nowrap}
+.workflowBadge{font-size:7.2px;letter-spacing:.055em;color:#56606d;background:rgba(255,255,255,.36);border:1px solid rgba(91,103,118,.38);box-shadow:none}
+.savedTicket[data-workflow="COMPLETE"] .workflowBadge{color:#e6ebf2;background:#3e4754;border-color:#2f3742;box-shadow:inset 0 1px 0 rgba(255,255,255,.14)}
+.stateBadge{font-size:7.2px;letter-spacing:.055em;border:1px solid rgba(255,255,255,.48);background:#d7dde6;color:#4f5966;box-shadow:inset 0 1px 0 rgba(255,255,255,.5)}
+.savedTicket[data-outcome="WON"] .stateBadge{background:#91cf9f;color:#0b5b24;border-color:#6faf7d}
+.savedTicket[data-outcome="LOST"] .stateBadge{background:#e9a4ae;color:#811326;border-color:#cf7e8b}
+.savedTicket[data-outcome="PUSH"] .stateBadge{background:#e7ca62;color:#654c00;border-color:#c7a943}
+.savedTicket[data-outcome="LIVE"] .stateBadge{background:#e8c66e;color:#654500;border-color:#c5a549}
+.savedTicket[data-outcome="PENDING"] .stateBadge{background:#d8dee6;color:#4d5865;border-color:#b9c2cd}
+.savedTicket[data-outcome="SUSPENDED"] .stateBadge,.savedTicket[data-outcome="UNAVAILABLE"] .stateBadge{background:#d3cad2;color:#655263;border-color:#b6a7b3}
+.bookBadge{font-size:7.4px;letter-spacing:.035em;border:1px solid rgba(0,0,0,.22);box-shadow:inset 0 1px 0 rgba(255,255,255,.24)}
+.bookBadge[data-sportsbook="draftkings"]{background:#53D337;color:#fff;border-color:#2d9e1b}
+.bookBadge[data-sportsbook="fanduel"]{background:#2458c5;color:#fff;border-color:#153b91}
+.bookBadge[data-sportsbook="betmgm"]{background:#111;color:#e4bf68;border-color:#9d7a31}
+.bookBadge[data-sportsbook="caesars"]{background:#0a6453;color:#e6c871;border-color:#8f742e}
+.bookBadge[data-sportsbook="fanatics"]{background:#080808;color:#fff;border-color:#333}
+.bookBadge[data-sportsbook="bet365"]{background:#078447;color:#f4df22;border-color:#055f34}
+.bookBadge[data-sportsbook="hardrock"]{background:#5349AA;color:#fff;border-color:#342d78}
+.bookBadge[data-sportsbook="thescore"]{background:#1B4180;color:#fff;border-color:#102c5e}
+.bookBadge[data-sportsbook="betrivers"]{background:#16355E;color:#FBB715;border-color:#0d2441}
+.bookBadge[data-sportsbook="bally"]{background:#db1622;color:#fff;border-color:#a10d15}
+.bookBadge[data-sportsbook="other"]{background:#aeb6c1;color:#25303c;border-color:#87919e}
+.savedMeta{margin-top:4px;color:#626e7d;font-size:8.7px;font-weight:800;line-height:1.2;letter-spacing:.025em;text-transform:none}
+.savedTimes{margin-top:2px;color:#596372;font-size:8px;font-weight:750;line-height:1.18}
 
-/* Approved bottom-row hierarchy: primary Open Ticket, silver details, compact Actions */
-.savedActions{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,1.65fr) minmax(66px,1.05fr);gap:5px;margin-top:7px}
-.savedActions button,.savedActions .button{display:flex;align-items:center;justify-content:center;width:100%;height:32px;min-height:32px;padding:3px 5px;font-size:8.5px;line-height:1;white-space:nowrap}
-.savedActions .primary{font-size:9px}
-.savedActions [data-ticket-action="toggle-details"],.savedActions [data-ticket-action="menu"]{color:#26303b;border-color:rgba(93,105,120,.46);background:linear-gradient(180deg,#e9edf2,#c5ced9 55%,#8c98a8);box-shadow:inset 0 1px 0 rgba(255,255,255,.68),0 2px 5px rgba(0,0,0,.12)}
+/* Bottom-row hierarchy */
+.savedActions{display:grid;grid-template-columns:minmax(0,3.15fr) minmax(0,1.55fr) minmax(58px,.92fr);gap:4px;margin-top:6px}
+.savedActions button,.savedActions .button{display:flex;align-items:center;justify-content:center;width:100%;height:30px;min-height:30px;padding:3px 5px;font-size:8px;line-height:1;white-space:nowrap}
+.savedActions .primary{font-size:8.7px}
+.savedActions [data-ticket-action="toggle-details"],.savedActions [data-ticket-action="menu"]{color:#26303b;border-color:rgba(93,105,120,.46);background:linear-gradient(180deg,#e9edf2,#c5ced9 55%,#8c98a8);box-shadow:inset 0 1px 0 rgba(255,255,255,.68),0 2px 4px rgba(0,0,0,.11)}
 
 /* Expanded legs remain contained and inherit clear result state */
 .ticketDetails{display:grid;gap:0;margin-top:7px;padding:2px 8px 2px 10px;border:1px solid rgba(112,124,139,.24);border-radius:8px;background:rgba(248,250,253,.48);box-shadow:none}
@@ -94,15 +106,15 @@
 .sortFilterBackdrop{position:fixed;inset:0;z-index:210;background:rgba(7,11,17,.48)}
 
 @media(max-width:700px){
-  .dashboardHeader{grid-template-columns:minmax(112px,.9fr) minmax(0,2.75fr)}
+  .dashboardHeader{grid-template-columns:minmax(108px,.86fr) minmax(0,2.8fr)}
 }
 @media(max-width:430px){
-  .top{padding:9px 10px 8px}.logo{width:min(170px,44vw)}.top h1{font-size:20px}
-  .dashboardHeader{grid-template-columns:minmax(108px,.9fr) minmax(0,2.8fr);gap:7px}
-  .dashboardHeader h2{font-size:17px}.dashboardStatus{font-size:8px}
-  .dashboardActions{gap:5px}.dashboardActions button,.dashboardActions .button{height:33px;min-height:33px;padding:3px;font-size:8px}
-  .dashboardToolbar{grid-template-columns:repeat(3,minmax(0,1fr)) 33px;gap:4px}.dashboardToolbar button{height:24px;min-height:24px;font-size:7.5px;padding:2px 3px}
-  .savedTitleRow h3{font-size:16px}.workflowBadge,.stateBadge{font-size:7px;padding:3px 5px}.bookBadge{font-size:7.5px;padding:3px 5px}
-  .savedActions button,.savedActions .button{font-size:8px}.savedActions .primary{font-size:8.5px}
-  .sortFilterGrid{grid-template-columns:1fr}.savedMeta{font-size:8.5px}.savedTimes{font-size:7.8px}.dashboardLeg{padding:7px 0 7px 8px}.dashboardLegValue{font-size:13px}
+  .top{padding:7px 10px 6px}.logo{width:min(205px,53vw);max-height:53px}.top h1{font-size:22px}
+  .dashboardHeader{grid-template-columns:minmax(104px,.86fr) minmax(0,2.82fr);gap:6px}
+  .dashboardHeader h2{font-size:17px}.dashboardStatus{font-size:8px}.dashboardUpdated{font-size:7.2px}
+  .dashboardActions{gap:4px}.dashboardActions button,.dashboardActions .button{height:37px;min-height:37px;padding:3px;font-size:8px}
+  .dashboardToolbar{grid-template-columns:repeat(3,minmax(0,1fr)) 32px;gap:4px}.dashboardToolbar button{height:23px;min-height:23px;font-size:7.4px;padding:2px 3px}
+  .savedTitleRow h3{font-size:16px}.workflowBadge,.stateBadge{font-size:6.8px;padding:3px 5px}.bookBadge{font-size:7px;padding:3px 5px}
+  .savedActions button,.savedActions .button{font-size:7.7px}.savedActions .primary{font-size:8.3px}
+  .sortFilterGrid{grid-template-columns:1fr}.savedMeta{font-size:8.2px}.savedTimes{font-size:7.6px}.dashboardLeg{padding:7px 0 7px 8px}.dashboardLegValue{font-size:13px}
 }
