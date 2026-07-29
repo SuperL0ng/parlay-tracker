@@ -3,7 +3,7 @@
 
 /* Hero and primary navigation */
 .top{padding:7px 12px 7px;margin-bottom:9px}
-.logo{width:min(235px,62vw);max-height:48px;object-fit:contain;margin:0 auto 1px;filter:drop-shadow(0 4px 7px rgba(0,0,0,.18))}
+.logo{width:min(278px,72vw);max-height:58px;object-fit:contain;margin:0 auto 1px;filter:drop-shadow(0 4px 7px rgba(0,0,0,.18))}
 .top h1{margin-top:0;font-size:21px;line-height:1.02;letter-spacing:.13em;color:#27313d}
 .top p{margin-top:2px;font-size:8.5px;letter-spacing:.23em}
 .appTabs{gap:7px;margin-bottom:9px}
@@ -17,13 +17,13 @@
 .dashboardStatus,.dashboardUpdated{margin:3px 0 0;color:#657080;font-size:8.5px;font-weight:760;line-height:1.12;white-space:nowrap}
 .dashboardUpdated{margin-top:2px;color:#737d89;font-size:7.7px}
 .dashboardActions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;min-width:0}
-.dashboardActions button,.dashboardActions .button{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;min-width:0;min-height:38px;height:38px;padding:3px 4px;font-size:8.5px;line-height:1.03;white-space:normal}
+.dashboardActions button,.dashboardActions .button{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;min-width:0;min-height:38px;height:38px;padding:3px 4px;font-size:9.5px;line-height:1.04;white-space:normal}
 
-/* Thin toolbar with a square sort control */
+/* Thin LIVE-like toolbar with a square sort control */
 .dashboardToolbar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) 33px;gap:4px;margin-top:7px}
-.dashboardToolbar button{width:100%;height:24px;min-height:24px;padding:2px 5px;font-size:7.8px;line-height:1;white-space:nowrap;letter-spacing:.035em}
+.dashboardToolbar button{width:100%;height:26px;min-height:26px;padding:2px 6px;border-radius:5px;font-size:9px;line-height:1;white-space:nowrap;letter-spacing:.025em;background:linear-gradient(180deg,#eef1f5,#cbd3dd 58%,#9ca7b5);box-shadow:inset 0 1px 0 rgba(255,255,255,.72),0 1px 3px rgba(0,0,0,.11)}
 .dashboardSelectionToolbar{grid-template-columns:repeat(3,minmax(0,1fr))}
-.dashboardSelectionToolbar .selectionCancel{font-size:8px;color:#8a651b}
+.dashboardSelectionToolbar .selectionCancel{font-size:9px;color:#8a651b}
 .sortFilterGlyph{display:grid;gap:3px;width:16px;margin:auto}
 .sortFilterGlyph span{display:block;height:2px;border-radius:2px;background:currentColor}
 .sortFilterGlyph span:nth-child(2){width:11px}
@@ -45,17 +45,17 @@
 .savedTicketTop>div{min-width:0;flex:1}
 .savedTitleRow{display:flex;align-items:center;flex-wrap:wrap;gap:4px;min-width:0;min-height:20px}
 .savedTitleRow h3{margin:0;min-width:0;color:#171d25;font-size:17.5px;line-height:1.03;font-weight:950;letter-spacing:.01em;overflow-wrap:anywhere}
-.workflowBadge,.stateBadge,.bookBadge{display:inline-flex;align-items:center;justify-content:center;height:18px;min-height:18px;box-sizing:border-box;padding:1px 6px 0;border-radius:5px;line-height:16px;font-weight:950;white-space:nowrap}
-.workflowBadge{font-size:7.2px;letter-spacing:.055em;color:#56606d;background:rgba(255,255,255,.36);border:1px solid rgba(91,103,118,.38);box-shadow:none}
+.workflowBadge,.stateBadge,.bookBadge{display:inline-grid;place-items:center;height:19px;min-height:19px;box-sizing:border-box;padding:1px 6px 0;border-radius:5px;line-height:1;font-weight:900;white-space:nowrap;vertical-align:middle;text-rendering:geometricPrecision}
+.workflowBadge{font-size:7.4px;letter-spacing:.05em;color:#56606d;background:rgba(255,255,255,.36);border:1px solid rgba(91,103,118,.38);box-shadow:none}
 .savedTicket[data-workflow="COMPLETE"] .workflowBadge{color:#e6ebf2;background:#3e4754;border-color:#2f3742;box-shadow:inset 0 1px 0 rgba(255,255,255,.14)}
-.stateBadge{font-size:7.2px;letter-spacing:.055em;border:1px solid rgba(255,255,255,.48);background:#d7dde6;color:#4f5966;box-shadow:inset 0 1px 0 rgba(255,255,255,.5)}
+.stateBadge{font-size:7.4px;letter-spacing:.05em;border:1px solid rgba(255,255,255,.48);background:#d7dde6;color:#4f5966;box-shadow:inset 0 1px 0 rgba(255,255,255,.5)}
 .savedTicket[data-outcome="WON"] .stateBadge{background:#91cf9f;color:#0b5b24;border-color:#6faf7d}
 .savedTicket[data-outcome="LOST"] .stateBadge{background:#e9a4ae;color:#811326;border-color:#cf7e8b}
 .savedTicket[data-outcome="PUSH"] .stateBadge{background:#e7ca62;color:#654c00;border-color:#c7a943}
 .savedTicket[data-outcome="LIVE"] .stateBadge{background:#e8c66e;color:#654500;border-color:#c5a549}
 .savedTicket[data-outcome="PENDING"] .stateBadge{background:#d8dee6;color:#4d5865;border-color:#b9c2cd}
 .savedTicket[data-outcome="SUSPENDED"] .stateBadge,.savedTicket[data-outcome="UNAVAILABLE"] .stateBadge{background:#d3cad2;color:#655263;border-color:#b6a7b3}
-.bookBadge{font-size:7.4px;letter-spacing:.035em;border:1px solid rgba(0,0,0,.22);box-shadow:inset 0 1px 0 rgba(255,255,255,.24)}
+.bookBadge{font-size:7.6px;letter-spacing:.03em;border:1px solid rgba(0,0,0,.22);box-shadow:inset 0 1px 0 rgba(255,255,255,.24)}
 .bookBadge[data-sportsbook="draftkings"]{background:#53D337;color:#fff;border-color:#2d9e1b}
 .bookBadge[data-sportsbook="fanduel"]{background:#2458c5;color:#fff;border-color:#153b91}
 .bookBadge[data-sportsbook="betmgm"]{background:#111;color:#e4bf68;border-color:#9d7a31}
@@ -72,8 +72,8 @@
 
 /* Bottom-row hierarchy */
 .savedActions{display:grid;grid-template-columns:minmax(0,3.15fr) minmax(0,1.55fr) minmax(58px,.92fr);gap:4px;margin-top:6px}
-.savedActions button,.savedActions .button{display:flex;align-items:center;justify-content:center;width:100%;height:30px;min-height:30px;padding:3px 5px;font-size:8px;line-height:1;white-space:nowrap;color:#26303b;border-color:rgba(93,105,120,.46);background:linear-gradient(180deg,#e9edf2,#c5ced9 55%,#8c98a8);box-shadow:inset 0 1px 0 rgba(255,255,255,.68),0 2px 4px rgba(0,0,0,.11)}
-.savedActions .primary{font-size:8.7px;color:#26303b;border-color:rgba(93,105,120,.46);background:linear-gradient(180deg,#eef1f5,#cbd3dd 55%,#929eae);box-shadow:inset 0 1px 0 rgba(255,255,255,.72),0 2px 4px rgba(0,0,0,.11)}
+.savedActions button,.savedActions .button{display:flex;align-items:center;justify-content:center;width:100%;height:31px;min-height:31px;padding:3px 5px;font-size:9.2px;line-height:1;white-space:nowrap;color:#26303b;border-color:rgba(93,105,120,.46);background:linear-gradient(180deg,#e9edf2,#c5ced9 55%,#8c98a8);box-shadow:inset 0 1px 0 rgba(255,255,255,.68),0 2px 4px rgba(0,0,0,.11)}
+.savedActions .primary{font-size:10px;color:#26303b;border-color:rgba(93,105,120,.46);background:linear-gradient(180deg,#eef1f5,#cbd3dd 55%,#929eae);box-shadow:inset 0 1px 0 rgba(255,255,255,.72),0 2px 4px rgba(0,0,0,.11)}
 .savedActions [data-ticket-action="toggle-details"],.savedActions [data-ticket-action="menu"]{color:#26303b;border-color:rgba(93,105,120,.46);background:linear-gradient(180deg,#e9edf2,#c5ced9 55%,#8c98a8);box-shadow:inset 0 1px 0 rgba(255,255,255,.68),0 2px 4px rgba(0,0,0,.11)}
 
 /* Expanded legs remain contained and inherit clear result state */
@@ -99,7 +99,7 @@
 
 /* Floating overlays: never resize ticket cards */
 .savedActionsMenu{position:fixed;z-index:220;width:min(230px,calc(100vw - 20px));display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;padding:8px;border:1px solid rgba(91,103,118,.55);border-radius:10px;background:linear-gradient(180deg,rgba(244,247,250,.98),rgba(190,200,212,.98));box-shadow:0 9px 22px rgba(29,38,49,.32)}
-.savedActionsMenu button{width:100%;min-width:0;min-height:38px;padding:5px 3px;font-size:9px;line-height:1.08;white-space:normal}
+.savedActionsMenu button{width:100%;min-width:0;min-height:38px;padding:5px 3px;font-size:10px;line-height:1.08;white-space:normal}
 .sortFilterPanel{position:fixed;z-index:215;left:10px;right:10px;top:50%;transform:translateY(-50%);max-width:620px;margin:auto;padding:13px;border-radius:13px;border:1px solid rgba(255,255,255,.88);background:linear-gradient(180deg,#f7f9fc,#cbd3de 66%,#9ca7b6);box-shadow:0 18px 45px rgba(0,0,0,.38)}
 .sortFilterGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 .sortFilterPanel .savedActions{grid-template-columns:1fr 1fr}
@@ -109,12 +109,12 @@
   .dashboardHeader{grid-template-columns:minmax(118px,.98fr) minmax(0,2.67fr)}
 }
 @media(max-width:430px){
-  .top{padding:7px 10px 6px}.logo{width:min(230px,61vw);max-height:46px}.top h1{font-size:20px}
+  .top{padding:7px 10px 6px}.logo{width:min(270px,70vw);max-height:56px}.top h1{font-size:20px}
   .dashboardHeader{grid-template-columns:minmax(116px,.98fr) minmax(0,2.68fr);gap:6px}
   .dashboardHeader h2{font-size:15.5px}.dashboardStatus{font-size:8px}.dashboardUpdated{font-size:7.2px}
-  .dashboardActions{gap:4px}.dashboardActions button,.dashboardActions .button{height:37px;min-height:37px;padding:3px;font-size:8px}
-  .dashboardToolbar{grid-template-columns:repeat(3,minmax(0,1fr)) 32px;gap:4px}.dashboardToolbar button{height:23px;min-height:23px;font-size:7.4px;padding:2px 3px}
-  .savedTitleRow h3{font-size:16.5px}.workflowBadge,.stateBadge{font-size:6.8px;padding:1px 5px 0}.bookBadge{font-size:7px;padding:1px 5px 0}
-  .savedActions button,.savedActions .button{font-size:7.7px}.savedActions .primary{font-size:8.3px}
+  .dashboardActions{gap:4px}.dashboardActions button,.dashboardActions .button{height:37px;min-height:37px;padding:3px;font-size:9px}
+  .dashboardToolbar{grid-template-columns:repeat(3,minmax(0,1fr)) 32px;gap:4px}.dashboardToolbar button{height:26px;min-height:26px;font-size:8.7px;padding:2px 4px}
+  .savedTitleRow h3{font-size:16.5px}.workflowBadge,.stateBadge{font-size:7.4px}.bookBadge{font-size:7.4px}
+  .savedActions button,.savedActions .button{font-size:8.8px}.savedActions .primary{font-size:9.6px}
   .sortFilterGrid{grid-template-columns:1fr}.savedMeta{font-size:8.7px}.savedTimes{font-size:8px}.dashboardLeg{padding:7px 0 7px 8px}.dashboardLegValue{font-size:13px}
 }
