@@ -18,7 +18,7 @@
     ],
     "extraAssets": ["ssb-gold-v1-64.png", "ssb-gold-v1-128.png"],
     "shareImage": "ssb-share-v3.png",
-    "logo": "ssb_full_logo_web_768.png"
+    "logo": "simon-sports-betting-nameplate.png"
   },
   "silver": {
     "domain": "simonsportsbetting.com",
@@ -38,6 +38,6 @@
     ],
     "extraAssets": ["ssb-favicon-v3-64.png", "ssb-favicon-v3-128.png"],
     "shareImage": "ssb-share-v3.png",
-    "logo": "ssb_full_logo_web_768.png"
+    "logo": "simon-sports-betting-nameplate.png"
   }
 }
