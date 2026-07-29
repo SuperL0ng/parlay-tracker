@@ -40,11 +40,12 @@
         <div class="dashboardHeading">
           <h2 id="dashboardTitle">MY TICKETS</h2>
           <p id="dashboardStatus" class="dashboardStatus" aria-live="polite"></p>
+          <p id="dashboardUpdated" class="dashboardUpdated"></p>
         </div>
         <div class="dashboardActions">
-          <button id="importTicketBtn" class="ghost" type="button">Import Code</button>
-          <a id="viewActiveBtn" class="button ghost" href="#view=active">View Active</a>
-          <button id="newTicketBtn" type="button">New Ticket</button>
+          <button id="importTicketBtn" class="ghost" type="button"><span>Import</span><span>Code</span></button>
+          <a id="viewActiveBtn" class="button ghost" href="#view=active"><span>View</span><span>Active</span></a>
+          <button id="newTicketBtn" type="button"><span>New</span><span>Ticket</span></button>
         </div>
       </div>
       <div class="dashboardToolbar" data-dashboard-toolbar="normal">
@@ -72,7 +73,7 @@
           <div id="ticketLeagueWrap"><label for="ticketLeague">Ticket League</label><select id="ticketLeague"><option>MLB</option><option>NBA</option><option>WNBA</option></select></div>
           <div class="full"><label for="ticketGame">Ticket Game</label><select id="ticketGame"><option value="">Loading games…</option></select><input id="ticketGameManual" class="manualInput hide" placeholder="Manual game, e.g. NYM@ATL"><div id="apiStatus" class="status">Waiting for games…</div></div>
           <div><label for="odds">Odds / Title</label><input id="odds" placeholder="+350"></div>
-          <div><label for="sportsbook">Sportsbook</label><select id="sportsbook"><option value="">No sportsbook</option><option>DraftKings</option><option>FanDuel</option><option>BetMGM</option><option>Caesars</option><option>Other</option></select></div>
+          <div><label for="sportsbook">Sportsbook</label><select id="sportsbook"><option value="">No sportsbook</option><option>DraftKings</option><option>FanDuel</option><option>BetMGM</option><option>Caesars Sportsbook</option><option>Fanatics Sportsbook</option><option>bet365</option><option>Hard Rock Bet</option><option>theScore Bet</option><option>BetRivers</option><option>Bally Bet</option><option>Other</option></select></div>
           <div><label for="ticketStatus">Ticket Status</label><select id="ticketStatus"><option value="active">Active</option><option value="completed">Completed</option></select></div>
         </div>
       </section>
@@ -115,7 +116,7 @@
     <p id="ticketShareHelp">Paste the same ticket object used by the Scriptable trackers.</p>
     <textarea id="ticketShareInput" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder='{title:"+870",date:"20260711",type:"sgp",game:"ATL@STL",legs:[...]}'></textarea>
     <label for="ticketImportSportsbook">Sportsbook on this device</label>
-    <select id="ticketImportSportsbook"><option value="">No sportsbook</option><option>DraftKings</option><option>FanDuel</option><option>BetMGM</option><option>Caesars</option><option>Other</option></select>
+    <select id="ticketImportSportsbook"><option value="">No sportsbook</option><option>DraftKings</option><option>FanDuel</option><option>BetMGM</option><option>Caesars Sportsbook</option><option>Fanatics Sportsbook</option><option>bet365</option><option>Hard Rock Bet</option><option>theScore Bet</option><option>BetRivers</option><option>Bally Bet</option><option>Other</option></select>
     <div id="ticketSharePreview" class="sharePreview hide"></div>
     <div id="ticketShareStatus" class="status bad" aria-live="polite"></div>
     <div class="modalActions"><button id="ticketSharePrimary" type="button">Preview Ticket</button><button id="ticketShareCancel" class="ghost" type="button">Cancel</button></div>
