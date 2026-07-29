@@ -2,10 +2,10 @@
    The user-approved collapsed dashboard is the visual target; canonical controllers retain behavior ownership. */
 
 /* Hero and primary navigation */
-.top{padding:7px 12px 7px;margin-bottom:9px}
-.logo{width:min(310px,80vw);max-height:64px;object-fit:contain;margin:0 auto 1px;filter:drop-shadow(0 4px 7px rgba(0,0,0,.18))}
-.top h1{margin-top:0;font-size:19px;line-height:1.02;letter-spacing:.13em;color:#27313d}
-.top p{margin-top:2px;font-size:8.5px;letter-spacing:.23em}
+.top{padding:5px 12px 7px;margin-bottom:9px}
+.logo{display:block;width:min(350px,90vw);height:68px;object-fit:contain;margin:0 auto 0;filter:drop-shadow(0 4px 7px rgba(0,0,0,.18))}
+.top h1{margin:0;font-size:16px;line-height:17px;letter-spacing:.13em;color:#27313d}
+.top p{margin:2px 0 0;font-size:8.5px;line-height:10px;letter-spacing:.23em}
 .appTabs{gap:7px;margin-bottom:9px}
 .appTabs button{height:34px;min-height:34px;padding:5px 8px;font-size:12.5px;line-height:1}
 .appTabs .active{outline:2px solid color-mix(in srgb,var(--accent) 78%,#fff);outline-offset:1px}
@@ -19,10 +19,10 @@
 .dashboardActions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;min-width:0}
 .dashboardActions button,.dashboardActions .button{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;min-width:0;min-height:38px;height:38px;padding:3px 4px;font-size:9.5px;line-height:1.04;white-space:normal}
 
-/* Long, thin LIVE-style toolbar with a square sort control */
-.dashboardToolbar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) 34px;gap:5px;margin-top:7px}
-.dashboardToolbar button{display:flex;align-items:center;justify-content:center;width:100%;height:29px;min-height:29px;padding:3px 7px;border:1px solid rgba(91,103,118,.48);border-radius:6px;font-size:9.8px;font-weight:850;line-height:1;white-space:nowrap;letter-spacing:.025em;color:#2b3541;background:linear-gradient(180deg,#f2f4f7,#d2d9e2 56%,#9ca7b5);box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 1px 3px rgba(0,0,0,.13)}
-.dashboardSelectionToolbar{grid-template-columns:repeat(3,minmax(0,1fr))}
+/* LIVE-width toolbar: narrow Refresh, wide Expand All, narrow Select, square sort */
+.dashboardToolbar{display:grid;grid-template-columns:74px 100px 58px 34px;justify-content:end;gap:5px;margin-top:7px}
+.dashboardToolbar button{display:flex;align-items:center;justify-content:center;width:100%;height:30px;min-height:30px;padding:3px 5px;border:1px solid rgba(91,103,118,.48);border-radius:8px;font-size:9.4px;font-weight:850;line-height:1;white-space:nowrap;letter-spacing:.02em;color:#2b3541;background:linear-gradient(180deg,#f2f4f7,#d2d9e2 56%,#9ca7b5);box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 1px 3px rgba(0,0,0,.13)}
+.dashboardSelectionToolbar{grid-template-columns:repeat(3,minmax(0,1fr));justify-content:stretch}
 .dashboardSelectionToolbar .selectionCancel{font-size:9.8px;color:#8a651b}
 .sortFilterGlyph{display:grid;gap:3px;width:16px;margin:auto}
 .sortFilterGlyph span{display:block;height:2px;border-radius:2px;background:currentColor}
@@ -45,7 +45,7 @@
 .savedTicketTop>div{min-width:0;flex:1}
 .savedTitleRow{display:flex;align-items:center;flex-wrap:wrap;gap:4px;min-width:0;min-height:20px;line-height:1}
 .savedTitleRow h3{margin:0;min-width:0;color:#171d25;font-size:17.5px;line-height:1.03;font-weight:950;letter-spacing:.01em;overflow-wrap:anywhere}
-.workflowBadge,.stateBadge,.bookBadge{display:inline-grid;place-items:center;align-self:center;flex:0 0 auto;height:19px;min-height:19px;box-sizing:border-box;padding:0 6px;border-radius:5px;line-height:1;font-weight:900;white-space:nowrap;vertical-align:middle;text-rendering:geometricPrecision}
+.workflowBadge,.stateBadge,.bookBadge{display:inline-grid;place-items:center;align-self:center;flex:0 0 auto;height:19px;min-height:19px;box-sizing:border-box;padding:0 6px;border-radius:5px;line-height:1;font-weight:900;white-space:nowrap;vertical-align:middle;text-rendering:geometricPrecision;contain:layout paint}
 .workflowBadge{font-size:7.4px;letter-spacing:.05em;color:#56606d;background:rgba(255,255,255,.36);border:1px solid rgba(91,103,118,.38);box-shadow:none}
 .savedTicket[data-workflow="COMPLETE"] .workflowBadge{color:#e6ebf2;background:#3e4754;border-color:#2f3742;box-shadow:inset 0 1px 0 rgba(255,255,255,.14)}
 .stateBadge{font-size:7.4px;letter-spacing:.05em;border:1px solid rgba(255,255,255,.48);background:#d7dde6;color:#4f5966;box-shadow:inset 0 1px 0 rgba(255,255,255,.5)}
@@ -109,11 +109,11 @@
   .dashboardHeader{grid-template-columns:minmax(118px,.98fr) minmax(0,2.67fr)}
 }
 @media(max-width:430px){
-  .top{padding:7px 10px 6px}.logo{width:min(300px,78vw);max-height:62px}.top h1{font-size:18.5px}
+  .top{padding:5px 10px 6px}.logo{width:min(342px,88vw);height:66px}.top h1{font-size:15.5px;line-height:16px}
   .dashboardHeader{grid-template-columns:minmax(116px,.98fr) minmax(0,2.68fr);gap:6px}
   .dashboardHeader h2{font-size:15.5px}.dashboardStatus{font-size:8px}.dashboardUpdated{font-size:7.2px}
   .dashboardActions{gap:4px}.dashboardActions button,.dashboardActions .button{height:37px;min-height:37px;padding:3px;font-size:9px}
-  .dashboardToolbar{grid-template-columns:repeat(3,minmax(0,1fr)) 34px;gap:5px}.dashboardToolbar button{height:29px;min-height:29px;font-size:9.6px;padding:3px 5px}
+  .dashboardToolbar{grid-template-columns:72px 94px 56px 32px;justify-content:end;gap:4px}.dashboardToolbar button{height:30px;min-height:30px;font-size:9px;padding:3px 3px}
   .savedTitleRow h3{font-size:16.5px}.workflowBadge,.stateBadge{font-size:7.4px}.bookBadge{font-size:7.4px}
   .savedActions button,.savedActions .button{font-size:8.8px}.savedActions .primary{font-size:9.6px}
   .sortFilterGrid{grid-template-columns:1fr}.savedMeta{font-size:8.7px}.savedTimes{font-size:8px}.dashboardLeg{padding:7px 0 7px 8px}.dashboardLegValue{font-size:13px}
