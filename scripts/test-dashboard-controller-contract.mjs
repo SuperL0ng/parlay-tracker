@@ -26,6 +26,7 @@ globalThis.confirm=()=>true;
 vm.runInThisContext(readFileSync(new URL('../app/src/scripts/ticket-state-model.js',import.meta.url),'utf8'),{filename:'ticket-state-model.js'});
 vm.runInThisContext(readFileSync(new URL('../app/src/scripts/dashboard-controller.js',import.meta.url),'utf8'),{filename:'dashboard-controller.js'});
 const dashboardCss=readFileSync(new URL('../app/src/styles/dashboard.css',import.meta.url),'utf8');
+const template=readFileSync(new URL('../app/src/index.template.html',import.meta.url),'utf8');
 const stateModel=globalThis.ParlayTicketStateModel;
 const root={replaceChildren(){},appendChild(){},parentElement:{querySelector:()=>null,querySelectorAll:()=>[]},insertAdjacentElement(){}};
 const status={textContent:''};
@@ -61,10 +62,7 @@ const makeController=({storage={KEY:'k',load:()=>[]},tracker={}}={})=>new global
 {
   let controller;
   const renderStates=[];
-  const storage={
-    load:()=>[],
-    remove(){controller.onStorage({});return 2}
-  };
+  const storage={load:()=>[],remove(){controller.onStorage({});return 2}};
   controller=makeController({storage});
   controller.render=()=>renderStates.push({selectMode:controller.state.selectMode,selected:controller.state.selectedIds.size});
   controller.state.selectMode=true;controller.state.selectedIds=new Set(['a','b']);
@@ -109,17 +107,49 @@ const makeController=({storage={KEY:'k',load:()=>[]},tracker={}}={})=>new global
 }
 
 {
-  const record={id:'ticket-735',status:'completed',sportsbook:'DraftKings',liveOutcome:'PENDING',ticket:{title:'+735',type:'sgp',league:'MLB',game:'TEX@ATL',legs:[{label:'A',target:1},{label:'B',target:1},{label:'C',target:2},{label:'D',target:2}]},trackerSnapshot:{outcome:'PENDING',legs:[{state:'pending',value:1},{state:'pending',value:1},{state:'pending',value:2},{state:'pending',value:2}]},legSettlements:[{index:0,status:'WIN',actualValue:2},{index:1,status:'WIN',actualValue:1},{index:2,status:'WIN',actualValue:4},{index:3,status:'WIN',actualValue:6}]};
+  const record={id:'ticket-735',status:'completed',sportsbook:'DraftKings',savedAt:'2026-07-27T16:54:00Z',settledAt:'2026-07-27T21:09:00Z',liveOutcome:'PENDING',ticket:{title:'+735',type:'sgp',league:'MLB',game:'TEX@ATL',legs:[{label:'A',target:1},{label:'B',target:1},{label:'C',target:2},{label:'D',target:2}]},trackerSnapshot:{outcome:'PENDING',legs:[{state:'pending',value:1},{state:'pending',value:1},{state:'pending',value:2},{state:'pending',value:2}]},legSettlements:[{index:0,status:'WIN',actualValue:2},{index:1,status:'WIN',actualValue:1},{index:2,status:'WIN',actualValue:4},{index:3,status:'WIN',actualValue:6}]};
   const controller=makeController({storage:{load:()=>[record]}});
   const view=controller.recordsForRender()[0];
   assert.equal(view.workflow,'COMPLETE','Dashboard must keep workflow state independent from outcome');
   assert.equal(view.displayOutcome,'WON','Dashboard must derive the final result from terminal settlements');
   assert.deepEqual([...view.legs].map(leg=>leg.actualValue),[2,1,4,6],'Dashboard must consume normalized actual values');
   const card=controller.ticketCard(view);
-  assert.match(card.innerHTML,/DRAFTKINGS/,'Sportsbook badges must retain uppercase display text');
+  assert.match(card.innerHTML,/data-sportsbook="draftkings">DraftKings/,'Sportsbook identity must drive the approved badge label');
   assert.match(card.innerHTML,/workflowBadge">COMPLETE/,'Workflow and result must render as separate concepts');
   assert.match(card.innerHTML,/stateBadge">WON/,'Final result must remain independently visible');
+  assert.match(card.innerHTML,/SGP · MLB · TEX@ATL · 4 LEGS<\/div><div class="savedTimes">Saved /,'Settled tickets must render metadata and timestamps on separate lines');
+  assert.match(card.innerHTML,/ · Settled /,'Settled timestamp must share the dedicated Saved · Settled line');
   assert.match(card.innerHTML,/data-leg-state="won"/,'Terminal winning legs must expose a semantic presentation state');
+}
+
+{
+  const record={id:'unsettled',status:'active',sportsbook:'Caesars Sportsbook',savedAt:'2026-07-27T20:43:00Z',ticket:{title:'+310',type:'sgp',league:'MLB',game:'LAD@SF',legs:[{label:'A'},{label:'B'}]}};
+  const controller=makeController({storage:{load:()=>[record]}});
+  const card=controller.ticketCard(controller.view(record));
+  assert.match(card.innerHTML,/data-sportsbook="caesars">Caesars/,'Full selector names must map to abbreviated badge labels');
+  assert.match(card.innerHTML,/SGP · MLB · LAD@SF · 2 LEGS · Saved /,'Unsettled tickets must keep Saved on the metadata line');
+  assert.doesNotMatch(card.innerHTML,/class="savedTimes"/,'Unsettled tickets must not create an empty timestamp row');
+}
+
+{
+  const controller=makeController();
+  const expected={
+    'DraftKings':['draftkings','DraftKings'],
+    'FanDuel':['fanduel','FanDuel'],
+    'BetMGM':['betmgm','BetMGM'],
+    'Caesars Sportsbook':['caesars','Caesars'],
+    'Fanatics Sportsbook':['fanatics','Fanatics'],
+    'bet365':['bet365','bet365'],
+    'Hard Rock Bet':['hardrock','Hard Rock'],
+    'theScore Bet':['thescore','theScore'],
+    'BetRivers':['betrivers','BetRivers'],
+    'Bally Bet':['bally','Bally']
+  };
+  for(const [source,[key,label]] of Object.entries(expected)){
+    assert.deepEqual(controller.sportsbookPresentation(source),{key,label},`${source} must have a stable semantic badge mapping`);
+    assert.ok(dashboardCss.includes(`data-sportsbook="${key}"`),`${source} must have a canonical CSS theme`);
+    assert.ok(template.includes(`<option>${source}</option>`),`${source} must remain available in the selector`);
+  }
 }
 
 {
