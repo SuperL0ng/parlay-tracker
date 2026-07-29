@@ -19,12 +19,12 @@
 .dashboardActions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;min-width:0}
 .dashboardActions button,.dashboardActions .button{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;min-width:0;min-height:38px;height:38px;padding:3px 4px;font-size:9.5px;line-height:1.04;white-space:normal}
 
-/* Dedicated four-control toolbar matching the approved thin metallic treatment */
-.dashboardToolbar{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.16fr) minmax(0,.88fr) 32px;gap:4px;margin-top:7px;align-items:center}
-.dashboardToolbar button{display:flex;align-items:center;justify-content:center;width:100%;height:27px;min-height:27px;margin:0;padding:0 7px;border:1px solid rgba(91,103,118,.5);border-radius:6px;font-size:10.2px;font-weight:850;line-height:1;white-space:nowrap;letter-spacing:.025em;color:#26313d;background:linear-gradient(180deg,#f8fbff 0%,#d7dee8 48%,#8f9baa 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.9),inset 0 -1px 0 rgba(54,65,78,.2),0 2px 4px rgba(0,0,0,.12)}
-.dashboardToolbar .filterButton{width:32px;min-width:32px;height:27px;min-height:27px;padding:0;border-radius:6px}
+/* Four-control toolbar measured from the current LIVE rendering. */
+.dashboardToolbar{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.18fr) minmax(0,.82fr) 38px;gap:6px;margin-top:7px;align-items:center}
+.dashboardToolbar button{display:flex;align-items:center;justify-content:center;width:100%;height:21px;min-height:21px;margin:0;padding:0 6px;border:1px solid rgba(91,103,118,.48);border-radius:5px;font-size:8.3px;font-weight:850;line-height:1;white-space:nowrap;letter-spacing:.025em;color:#26313d;background:linear-gradient(180deg,#f7f9fc 0%,#d8dee7 58%,#9ba6b4 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.88),inset 0 -1px 0 rgba(54,65,78,.18),0 1px 2px rgba(0,0,0,.1)}
+.dashboardToolbar .filterButton{width:38px;min-width:38px;height:30px;min-height:30px;padding:0;border-radius:7px}
 .dashboardSelectionToolbar{grid-template-columns:repeat(3,minmax(0,1fr))}
-.dashboardSelectionToolbar .selectionCancel{font-size:10.2px;color:#8a651b}
+.dashboardSelectionToolbar .selectionCancel{font-size:8.3px;color:#8a651b}
 .sortFilterGlyph{display:grid;gap:3px;width:15px;margin:auto}
 .sortFilterGlyph span{display:block;height:2px;border-radius:2px;background:currentColor}
 .sortFilterGlyph span:nth-child(2){width:11px}
@@ -115,7 +115,7 @@
   .dashboardHeader{grid-template-columns:minmax(116px,.98fr) minmax(0,2.68fr);gap:6px}
   .dashboardHeader h2{font-size:15.5px}.dashboardStatus{font-size:8px}.dashboardUpdated{font-size:7.2px}
   .dashboardActions{gap:4px}.dashboardActions button,.dashboardActions .button{height:37px;min-height:37px;padding:3px;font-size:9px}
-  .dashboardToolbar{grid-template-columns:minmax(0,1fr) minmax(0,1.16fr) minmax(0,.88fr) 32px;gap:4px}.dashboardToolbar button{height:27px;min-height:27px;font-size:10px;padding:0 6px}.dashboardToolbar .filterButton{width:32px;min-width:32px;height:27px;min-height:27px}
+  .dashboardToolbar{grid-template-columns:minmax(0,1fr) minmax(0,1.18fr) minmax(0,.82fr) 38px;gap:6px}.dashboardToolbar button{height:21px;min-height:21px;font-size:8.3px;padding:0 5px}.dashboardToolbar .filterButton{width:38px;min-width:38px;height:30px;min-height:30px}
   .savedTitleRow h3{font-size:16.5px}.workflowBadge,.stateBadge{font-size:7.4px}.bookBadge{font-size:7.4px}
   .savedActions button,.savedActions .button{font-size:8.8px}.savedActions .primary{font-size:9.6px}
   .sortFilterGrid{grid-template-columns:1fr}.savedMeta{font-size:8.7px}.savedTimes{font-size:8px}.dashboardLeg{padding:7px 0 7px 8px}.dashboardLegValue{font-size:13px}
