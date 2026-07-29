@@ -114,9 +114,9 @@ const makeController=({storage={KEY:'k',load:()=>[]},tracker={}}={})=>new global
   assert.equal(view.displayOutcome,'WON','Dashboard must derive the final result from terminal settlements');
   assert.deepEqual([...view.legs].map(leg=>leg.actualValue),[2,1,4,6],'Dashboard must consume normalized actual values');
   const card=controller.ticketCard(view);
-  assert.match(card.innerHTML,/data-sportsbook="draftkings">DraftKings/,'Sportsbook identity must drive the approved badge label');
-  assert.match(card.innerHTML,/workflowBadge">COMPLETE/,'Workflow and result must render as separate concepts');
-  assert.match(card.innerHTML,/stateBadge">WON/,'Final result must remain independently visible');
+  assert.match(card.innerHTML,/data-sportsbook="draftkings"><span class="badgeText">DraftKings/,'Sportsbook identity must drive the approved badge label');
+  assert.match(card.innerHTML,/workflowBadge"><span class="badgeText">COMPLETE/,'Workflow and result must render as separate concepts');
+  assert.match(card.innerHTML,/stateBadge"><span class="badgeText">WON/,'Final result must remain independently visible');
   assert.match(card.innerHTML,/SGP · MLB · TEX@ATL · 4 LEGS<\/div><div class="savedTimes">Saved /,'Settled tickets must render metadata and timestamps on separate lines');
   assert.match(card.innerHTML,/ · Settled /,'Settled timestamp must share the dedicated Saved · Settled line');
   assert.match(card.innerHTML,/data-leg-state="won"/,'Terminal winning legs must expose a semantic presentation state');
@@ -126,7 +126,7 @@ const makeController=({storage={KEY:'k',load:()=>[]},tracker={}}={})=>new global
   const record={id:'unsettled',status:'active',sportsbook:'Caesars Sportsbook',savedAt:'2026-07-27T20:43:00Z',ticket:{title:'+310',type:'sgp',league:'MLB',game:'LAD@SF',legs:[{label:'A'},{label:'B'}]}};
   const controller=makeController({storage:{load:()=>[record]}});
   const card=controller.ticketCard(controller.view(record));
-  assert.match(card.innerHTML,/data-sportsbook="caesars">Caesars/,'Full selector names must map to abbreviated badge labels');
+  assert.match(card.innerHTML,/data-sportsbook="caesars"><span class="badgeText">Caesars/,'Full selector names must map to abbreviated badge labels');
   assert.match(card.innerHTML,/SGP · MLB · LAD@SF · 2 LEGS · Saved /,'Unsettled tickets must keep Saved on the metadata line');
   assert.doesNotMatch(card.innerHTML,/class="savedTimes"/,'Unsettled tickets must not create an empty timestamp row');
 }
