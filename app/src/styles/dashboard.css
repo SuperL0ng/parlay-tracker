@@ -50,25 +50,25 @@
 .badgeText{display:block;line-height:1;transform:translateY(0);margin:0;padding:0}
 .workflowBadge{font-size:7.4px;letter-spacing:.05em;color:#56606d;background:rgba(255,255,255,.36);border:1px solid rgba(91,103,118,.38);box-shadow:none}
 .savedTicket[data-workflow="COMPLETE"] .workflowBadge{color:#e6ebf2;background:#3e4754;border-color:#2f3742;box-shadow:inset 0 1px 0 rgba(255,255,255,.14)}
-.stateBadge{font-size:7.4px;letter-spacing:.05em;border:1px solid rgba(255,255,255,.48);background:#d7dde6;color:#4f5966;box-shadow:inset 0 1px 0 rgba(255,255,255,.5)}
-.savedTicket[data-outcome="WON"] .stateBadge{background:#91cf9f;color:#0b5b24;border-color:#6faf7d}
-.savedTicket[data-outcome="LOST"] .stateBadge{background:#e9a4ae;color:#811326;border-color:#cf7e8b}
-.savedTicket[data-outcome="PUSH"] .stateBadge{background:#e7ca62;color:#654c00;border-color:#c7a943}
-.savedTicket[data-outcome="LIVE"] .stateBadge{background:#e8c66e;color:#654500;border-color:#c5a549}
-.savedTicket[data-outcome="PENDING"] .stateBadge{background:#d8dee6;color:#4d5865;border-color:#b9c2cd}
-.savedTicket[data-outcome="SUSPENDED"] .stateBadge,.savedTicket[data-outcome="UNAVAILABLE"] .stateBadge{background:#d3cad2;color:#655263;border-color:#b6a7b3}
-.bookBadge{font-size:7.6px;letter-spacing:.03em;border:1px solid rgba(0,0,0,.22);box-shadow:inset 0 1px 0 rgba(255,255,255,.24)}
-.bookBadge[data-sportsbook="draftkings"]{background:#53D337;color:#fff;border-color:#2d9e1b}
-.bookBadge[data-sportsbook="fanduel"]{background:#2458c5;color:#fff;border-color:#153b91}
-.bookBadge[data-sportsbook="betmgm"]{background:#111;color:#e4bf68;border-color:#9d7a31}
-.bookBadge[data-sportsbook="caesars"]{background:#0a6453;color:#e6c871;border-color:#8f742e}
-.bookBadge[data-sportsbook="fanatics"]{background:#080808;color:#fff;border-color:#333}
-.bookBadge[data-sportsbook="bet365"]{background:#078447;color:#f4df22;border-color:#055f34}
-.bookBadge[data-sportsbook="hardrock"]{background:#5349AA;color:#fff;border-color:#342d78}
-.bookBadge[data-sportsbook="thescore"]{background:#1B4180;color:#fff;border-color:#102c5e}
-.bookBadge[data-sportsbook="betrivers"]{background:#16355E;color:#FBB715;border-color:#0d2441}
-.bookBadge[data-sportsbook="bally"]{background:#db1622;color:#fff;border-color:#a10d15}
-.bookBadge[data-sportsbook="other"]{background:#aeb6c1;color:#25303c;border-color:#87919e}
+.stateBadge{font-size:7.4px;letter-spacing:.05em;border:1px solid rgba(255,255,255,.48);background:#b9c7d8;color:#344252;box-shadow:inset 0 1px 0 rgba(255,255,255,.5)}
+.savedTicket[data-outcome="WON"] .stateBadge{background:#63c97a;color:#064d1c;border-color:#3fa95a}
+.savedTicket[data-outcome="LOST"] .stateBadge{background:#e86b7c;color:#6f0b1c;border-color:#c94c60}
+.savedTicket[data-outcome="PUSH"] .stateBadge{background:#e0b93f;color:#503900;border-color:#ba8f18}
+.savedTicket[data-outcome="LIVE"] .stateBadge{background:#e6b338;color:#4f3500;border-color:#c58d16}
+.savedTicket[data-outcome="PENDING"] .stateBadge{background:#b9c7d8;color:#344252;border-color:#94a8be}
+.savedTicket[data-outcome="SUSPENDED"] .stateBadge,.savedTicket[data-outcome="UNAVAILABLE"] .stateBadge{background:#c5a9c0;color:#51384d;border-color:#a4849e}
+.bookBadge{font-size:7.6px;letter-spacing:.03em;border:1px solid rgba(0,0,0,.18);box-shadow:inset 0 1px 0 rgba(255,255,255,.18)}
+.bookBadge[data-sportsbook="draftkings"]{background:#62b94f;color:#fff;border-color:#438f36}
+.bookBadge[data-sportsbook="fanduel"]{background:#3e68b8;color:#fff;border-color:#31528f}
+.bookBadge[data-sportsbook="betmgm"]{background:#252525;color:#d1b878;border-color:#7f6d40}
+.bookBadge[data-sportsbook="caesars"]{background:#2e6f64;color:#d6c27e;border-color:#6f6842}
+.bookBadge[data-sportsbook="fanatics"]{background:#2b2b2b;color:#fff;border-color:#4b4b4b}
+.bookBadge[data-sportsbook="bet365"]{background:#2a8056;color:#e5d95a;border-color:#236946}
+.bookBadge[data-sportsbook="hardrock"]{background:#6860a7;color:#fff;border-color:#504a82}
+.bookBadge[data-sportsbook="thescore"]{background:#3d5c8d;color:#fff;border-color:#30486e}
+.bookBadge[data-sportsbook="betrivers"]{background:#334d6d;color:#ddbb58;border-color:#283d57}
+.bookBadge[data-sportsbook="bally"]{background:#c64e57;color:#fff;border-color:#9d3d45}
+.bookBadge[data-sportsbook="other"]{background:#a7afb9;color:#25303c;border-color:#858e99}
 .savedMeta{margin-top:4px;color:#596676;font-size:9.1px;font-weight:800;line-height:1.22;letter-spacing:.018em;text-transform:none}
 .savedTimes{margin-top:2px;color:#515d6c;font-size:8.4px;font-weight:750;line-height:1.2}
 
