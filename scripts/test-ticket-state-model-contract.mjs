@@ -25,18 +25,27 @@ assert.equal(completedWinning.workflow,'COMPLETE');
 assert.equal(completedWinning.finalOutcome,'WON');
 assert.equal(completedWinning.runtime,'');
 assert.equal(completedWinning.displayOutcome,'WON');
-assert.deepEqual([...completedWinning.legs].map(leg=>leg.actualValue),[2,1,4,6]);
+assert.deepEqual([...completedWinning.legs].map(leg=>leg.actualValue),['2/1','1/1','4/2','6/2']);
 assert.deepEqual([...completedWinning.legs].map(leg=>leg.result),['WON','WON','WON','WON']);
 
 const activeHistorical=model.normalize({status:'active',settledOutcome:'LOST',ticket:{legs:[{label:'A'}]},legSettlements:[{index:0,status:'LOSS'}]});
 assert.equal(activeHistorical.workflow,'ACTIVE');
 assert.equal(activeHistorical.finalOutcome,'LOST');
 
-const live=model.normalize({status:'active',liveOutcome:'LIVE',ticket:{legs:[{label:'A'}]},trackerSnapshot:{outcome:'LIVE',legs:[{state:'live',value:'1/2'}]}});
+const live=model.normalize({status:'active',liveOutcome:'LIVE',ticket:{legs:[{label:'ATL Moneyline',game:'ATL@STL',team:'ATL'}]},trackerSnapshot:{outcome:'LIVE',legs:[{state:'live',value:'3-2',valueClass:'valueAhead1',gameMeta:'↑ 7th ●●'}]}});
 assert.equal(live.workflow,'ACTIVE');
 assert.equal(live.finalOutcome,'');
 assert.equal(live.runtime,'LIVE');
 assert.equal(live.legs[0].runtime,'LIVE');
+assert.equal(live.legs[0].actualValue,'3-2');
+assert.equal(live.legs[0].target,'');
+assert.equal(live.legs[0].gameMeta,'↑ 7th ●●');
+assert.equal(live.legs[0].valueClass,'valueAhead1');
+
+const pregameSpread=model.normalize({status:'active',liveOutcome:'PENDING',ticket:{legs:[{label:'Rays +1.5',game:'TB@BOS',team:'TB',target:1}]},trackerSnapshot:{outcome:'PENDING',legs:[{state:'pending',value:'',gameMeta:'7:10PM CT'}]}});
+assert.equal(pregameSpread.legs[0].actualValue,'');
+assert.equal(pregameSpread.legs[0].target,'');
+assert.equal(pregameSpread.legs[0].gameMeta,'7:10PM CT');
 
 const mixed=model.normalize({status:'completed',ticket:{legs:[{},{}]},legSettlements:[{index:0,status:'WIN'},{index:1,status:'VOID'}]});
 assert.equal(mixed.finalOutcome,'WON');
