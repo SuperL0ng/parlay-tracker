@@ -12,21 +12,24 @@ const tickets=[
       {label:'Jim Jarvis 1+ H',player:'Jim Jarvis',target:1},{label:'Brewer Hicklen 1+ H',player:'Brewer Hicklen',target:1},
       {label:'Matt Olson 2+ H+BB+SB',player:'Matt Olson',target:2},{label:'Michael Harris II 2+ H+R+RBI',player:'Michael Harris II',target:2}
     ]},
-    legSettlements:[{index:0,status:'WIN',actualValue:2},{index:1,status:'WIN',actualValue:1},{index:2,status:'WIN',actualValue:4},{index:3,status:'WIN',actualValue:6}]
+    legSettlements:[
+      {index:0,status:'WIN',actualValue:2},{index:1,status:'WIN',actualValue:1},
+      {index:2,status:'WIN',actualValue:4},{index:3,status:'WIN',actualValue:6}
+    ]
   },
   {
     id:'preview-live',status:'active',sportsbook:'FanDuel',savedAt:'2026-07-19T17:05:00Z',liveOutcome:'LIVE',
     ticket:{title:'+410',type:'parlay',league:'MLB',legs:[
-      {label:'ATL Moneyline',game:'ATL@STL',team:'ATL',target:1},{label:'LAD +1.5',game:'LAD@SF',team:'LAD',target:1}
+      {label:'ATL Moneyline',game:'ATL@STL',team:'ATL'},{label:'LAD +1.5',game:'LAD@SF',team:'LAD'}
     ]},
     trackerSnapshot:{outcome:'LIVE',updatedAt:'2026-07-19T19:40:00Z',legs:[
-      {label:'ATL Moneyline',game:'ATL@STL',team:'ATL',state:'live',value:'3-2',actualValue:'3-2',gameMeta:'Top 7th'},
-      {label:'LAD +1.5',game:'LAD@SF',team:'LAD',state:'pending',value:'0-0',actualValue:'0-0',gameMeta:'7:10 PM'}
+      {label:'ATL Moneyline',game:'ATL@STL',team:'ATL',state:'live',value:'3-2',actualValue:'3-2',valueClass:'valueAhead1',gameMeta:'↑ 7th ●●'},
+      {label:'LAD +1.5',game:'LAD@SF',team:'LAD',state:'pending',value:'',actualValue:'',valueClass:'valuePending',gameMeta:'7:10PM CT'}
     ]}
   },
   {
     id:'preview-straight',status:'active',sportsbook:'BetMGM',savedAt:'2026-07-20T01:12:00Z',liveOutcome:'PENDING',
-    ticket:{title:'-110',type:'straight',league:'MLB',game:'TB@BOS',legs:[{label:'Rays +1.5',game:'TB@BOS',team:'TB',target:1}]}
+    ticket:{title:'-110',type:'straight',league:'MLB',game:'TB@BOS',legs:[{label:'Rays +1.5',game:'TB@BOS',team:'TB'}]}
   }
 ];
 
