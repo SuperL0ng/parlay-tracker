@@ -32,7 +32,7 @@ const activeHistorical=model.normalize({status:'active',settledOutcome:'LOST',ti
 assert.equal(activeHistorical.workflow,'ACTIVE');
 assert.equal(activeHistorical.finalOutcome,'LOST');
 
-const live=model.normalize({status:'active',liveOutcome:'LIVE',ticket:{legs:[{label:'ATL Moneyline',game:'ATL@STL',team:'ATL'}]},trackerSnapshot:{outcome:'LIVE',legs:[{state:'live',value:'3-2',valueClass:'valueAhead1',gameMeta:'↑ 7th ●●'}]}});
+const live=model.normalize({status:'active',liveOutcome:'LIVE',ticket:{gameStart:'20260719T1910',legs:[{label:'ATL Moneyline',game:'ATL@STL',team:'ATL'}]},trackerSnapshot:{outcome:'LIVE',legs:[{state:'live',value:'3-2',valueClass:'valueAhead1',gameMeta:'↑ 7th ●●'}]}});
 assert.equal(live.workflow,'ACTIVE');
 assert.equal(live.finalOutcome,'');
 assert.equal(live.runtime,'LIVE');
@@ -42,10 +42,16 @@ assert.equal(live.legs[0].target,'');
 assert.equal(live.legs[0].gameMeta,'↑ 7th ●●');
 assert.equal(live.legs[0].valueClass,'valueAhead1');
 
-const pregameSpread=model.normalize({status:'active',liveOutcome:'PENDING',ticket:{legs:[{label:'Rays +1.5',game:'TB@BOS',team:'TB',target:1}]},trackerSnapshot:{outcome:'PENDING',legs:[{state:'pending',value:'',gameMeta:'7:10PM CT'}]}});
-assert.equal(pregameSpread.legs[0].actualValue,'');
-assert.equal(pregameSpread.legs[0].target,'');
-assert.equal(pregameSpread.legs[0].gameMeta,'7:10PM CT');
+const pregameStraight=model.normalize({status:'active',liveOutcome:'PENDING',ticket:{game:'TB@BOS',gameStart:'20260720T1810',legs:[{label:'Rays +1.5',game:'TB@BOS',team:'TB'}]}});
+assert.equal(pregameStraight.legs[0].actualValue,'');
+assert.equal(pregameStraight.legs[0].target,'');
+assert.equal(pregameStraight.legs[0].gameMeta,'6:10 PM CT');
+
+const pregameParlay=model.normalize({status:'active',liveOutcome:'PENDING',ticket:{type:'parlay',legs:[{label:'LAD +1.5',game:'LAD@SF',team:'LAD',gameStart:'20260720T1910'}]}});
+assert.equal(pregameParlay.legs[0].gameMeta,'7:10 PM CT');
+
+const unresolvedManual=model.normalize({status:'active',liveOutcome:'PENDING',ticket:{game:'Custom Game',legs:[{label:'Manual Pick'}]}});
+assert.equal(unresolvedManual.legs[0].gameMeta,'');
 
 const mixed=model.normalize({status:'completed',ticket:{legs:[{},{}]},legSettlements:[{index:0,status:'WIN'},{index:1,status:'VOID'}]});
 assert.equal(mixed.finalOutcome,'WON');
