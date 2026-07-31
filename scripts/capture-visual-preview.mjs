@@ -20,16 +20,17 @@ const tickets=[
   {
     id:'preview-live',status:'active',sportsbook:'FanDuel',savedAt:'2026-07-19T17:05:00Z',liveOutcome:'LIVE',
     ticket:{title:'+410',type:'parlay',league:'MLB',legs:[
-      {label:'ATL Moneyline',game:'ATL@STL',team:'ATL'},{label:'LAD +1.5',game:'LAD@SF',team:'LAD'}
+      {label:'ATL Moneyline',game:'ATL@STL',team:'ATL',gameStart:'20260719T1845'},
+      {label:'LAD +1.5',game:'LAD@SF',team:'LAD',gameStart:'20260719T1910'}
     ]},
     trackerSnapshot:{outcome:'LIVE',updatedAt:'2026-07-19T19:40:00Z',legs:[
       {label:'ATL Moneyline',game:'ATL@STL',team:'ATL',state:'live',value:'3-2',actualValue:'3-2',valueClass:'valueAhead1',gameMeta:'↑ 7th ●●'},
-      {label:'LAD +1.5',game:'LAD@SF',team:'LAD',state:'pending',value:'',actualValue:'',valueClass:'valuePending',gameMeta:'7:10PM CT'}
+      {label:'LAD +1.5',game:'LAD@SF',team:'LAD',state:'pending',value:'',actualValue:'',valueClass:'valuePending',gameMeta:''}
     ]}
   },
   {
     id:'preview-straight',status:'active',sportsbook:'BetMGM',savedAt:'2026-07-20T01:12:00Z',liveOutcome:'PENDING',
-    ticket:{title:'-110',type:'straight',league:'MLB',game:'TB@BOS',legs:[{label:'Rays +1.5',game:'TB@BOS',team:'TB'}]}
+    ticket:{title:'-110',type:'straight',league:'MLB',game:'TB@BOS',gameStart:'20260720T1810',legs:[{label:'Rays +1.5',game:'TB@BOS',team:'TB'}]}
   }
 ];
 
@@ -51,6 +52,9 @@ try{
   await page.getByRole('button',{name:'Expand All'}).click();
   const expandedVisible=await page.locator('.ticketDetails').evaluateAll(nodes=>nodes.filter(node=>getComputedStyle(node).display!=='none').length);
   if(expandedVisible!==tickets.length)throw new Error(`Expand All exposed ${expandedVisible} of ${tickets.length} ticket detail panels`);
+  const pendingMetadata=await page.locator('.dashboardLeg[data-leg-state="pending"] .dashboardLegMeta').allTextContents();
+  if(!pendingMetadata.some(text=>text.includes('7:10 PM CT')))throw new Error('Pending parlay leg did not derive scheduled first-pitch metadata');
+  if(!pendingMetadata.some(text=>text.includes('6:10 PM CT')))throw new Error('Pending straight leg did not derive scheduled first-pitch metadata');
   await page.screenshot({path:`${output}/02-dashboard-expanded.png`,fullPage:true});
   await page.getByRole('button',{name:'Select'}).click();
   const selectionVisible=await page.locator('.ticketDetails').evaluateAll(nodes=>nodes.filter(node=>getComputedStyle(node).display!=='none').length);
