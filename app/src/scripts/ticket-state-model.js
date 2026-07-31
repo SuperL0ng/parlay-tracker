@@ -23,9 +23,7 @@
     return states.every(state=>state==='WON'||state==='PUSH')?'WON':'';
   }
 
-  function signedLine(text){
-    return text.split(/\s+/).some(token=>/^[-+]\d+(?:\.\d+)?$/.test(token));
-  }
+  function signedLine(text){return /(?:^|\s)[+-]\d+(?:\.\d+)?(?:\s|$)/.test(text)}
 
   function isCountingMarket(saved,label){
     const text=`${clean(saved?.type)} ${clean(label)}`.toLowerCase();
