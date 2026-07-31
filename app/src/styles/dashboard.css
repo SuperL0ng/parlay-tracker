@@ -33,7 +33,7 @@
 
 /* Ticket cards */
 .ticketList{display:grid;gap:7px;margin-top:8px}
-.savedTicket{position:relative;padding:7px 7px 6px 9px;border:1px solid rgba(255,255,255,.82);border-left:4px solid #9aa4b2;border-radius:8px;background:linear-gradient(180deg,rgba(255,255,255,.84),rgba(214,221,231,.74));box-shadow:inset 0 1px 0 rgba(255,255,255,.92),0 3px 8px rgba(0,0,0,.1)}
+.savedTicket{position:relative;display:flex;flex-direction:column;padding:7px 7px 6px 9px;border:1px solid rgba(255,255,255,.82);border-left:4px solid #9aa4b2;border-radius:8px;background:linear-gradient(180deg,rgba(255,255,255,.84),rgba(214,221,231,.74));box-shadow:inset 0 1px 0 rgba(255,255,255,.92),0 3px 8px rgba(0,0,0,.1)}
 .savedTicket[data-outcome="LIVE"]{border-left-color:#d39a24}
 .savedTicket[data-outcome="WON"]{border-left-color:#1f9a43}
 .savedTicket[data-outcome="LOST"]{border-left-color:#d52c42}
@@ -42,12 +42,12 @@
 .savedTicket.selectable{padding-left:39px}
 .ticketSelectBox{display:none;position:absolute;left:10px;top:12px;width:19px;height:19px;padding:0;box-shadow:none}
 .savedTicket.selectable .ticketSelectBox{display:block}
-.savedTicketTop{display:flex;align-items:flex-start;justify-content:space-between;gap:7px}
+.savedTicketTop{display:flex;align-items:flex-start;justify-content:space-between;gap:7px;order:0}
 .savedTicketTop>div{min-width:0;flex:1}
 .savedTitleRow{display:flex;align-items:center;flex-wrap:wrap;gap:4px;min-width:0;min-height:20px;line-height:1}
 .savedTitleRow h3{margin:0;min-width:0;color:#171d25;font-size:17.5px;line-height:1.03;font-weight:950;letter-spacing:.01em;overflow-wrap:anywhere}
-.workflowBadge,.stateBadge,.bookBadge{display:inline-grid;place-items:center;align-self:center;flex:0 0 auto;height:19px;min-height:19px;box-sizing:border-box;padding:0 6px;border-radius:5px;line-height:1;font-weight:900;white-space:nowrap;vertical-align:middle;text-rendering:geometricPrecision}
-.badgeText{display:block;line-height:1;transform:translateY(0);margin:0;padding:0}
+.workflowBadge,.stateBadge,.bookBadge{display:inline-flex;align-items:center;justify-content:center;align-self:center;flex:0 0 auto;height:19px;min-height:19px;box-sizing:border-box;padding:0 6px;border-radius:5px;line-height:1;font-weight:900;white-space:nowrap;vertical-align:middle;text-rendering:geometricPrecision}
+.badgeText{display:block;height:17px;line-height:17px;margin:0;padding:0;transform:none}
 .workflowBadge{font-size:7.4px;letter-spacing:.05em;color:#56606d;background:rgba(255,255,255,.36);border:1px solid rgba(91,103,118,.38);box-shadow:none}
 .savedTicket[data-workflow="COMPLETE"] .workflowBadge{color:#e6ebf2;background:#3e4754;border-color:#2f3742;box-shadow:inset 0 1px 0 rgba(255,255,255,.14)}
 .stateBadge{font-size:7.4px;letter-spacing:.05em;border:1px solid rgba(255,255,255,.48);background:#b9c7d8;color:#344252;box-shadow:inset 0 1px 0 rgba(255,255,255,.5)}
@@ -73,13 +73,13 @@
 .savedTimes{margin-top:2px;color:#515d6c;font-size:8.4px;font-weight:750;line-height:1.2}
 
 /* Bottom-row hierarchy */
-.savedActions{display:grid;grid-template-columns:minmax(0,3.15fr) minmax(0,1.55fr) minmax(58px,.92fr);gap:4px;margin-top:6px}
+.savedActions{display:grid;grid-template-columns:minmax(0,3.15fr) minmax(0,1.55fr) minmax(58px,.92fr);gap:4px;margin-top:6px;order:2}
 .savedActions button,.savedActions .button{display:flex;align-items:center;justify-content:center;width:100%;height:31px;min-height:31px;padding:3px 5px;font-size:9.2px;line-height:1;white-space:nowrap;color:#26303b;border-color:rgba(93,105,120,.46);background:linear-gradient(180deg,#e9edf2,#c5ced9 55%,#8c98a8);box-shadow:inset 0 1px 0 rgba(255,255,255,.68),0 2px 4px rgba(0,0,0,.11)}
 .savedActions .primary{font-size:10px;color:#26303b;border-color:rgba(93,105,120,.46);background:linear-gradient(180deg,#eef1f5,#cbd3dd 55%,#929eae);box-shadow:inset 0 1px 0 rgba(255,255,255,.72),0 2px 4px rgba(0,0,0,.11)}
 .savedActions [data-ticket-action="toggle-details"],.savedActions [data-ticket-action="menu"]{color:#26303b;border-color:rgba(93,105,120,.46);background:linear-gradient(180deg,#e9edf2,#c5ced9 55%,#8c98a8);box-shadow:inset 0 1px 0 rgba(255,255,255,.68),0 2px 4px rgba(0,0,0,.11)}
 
 /* Expanded legs: compact, readable, and unmistakably state-specific. */
-.ticketDetails{display:grid;gap:3px;margin-top:7px;padding:4px 6px;border:1px solid rgba(112,124,139,.28);border-radius:7px;background:rgba(248,250,253,.58);box-shadow:inset 0 1px 0 rgba(255,255,255,.65)}
+.ticketDetails{display:grid;gap:3px;margin-top:7px;padding:4px 6px;border:1px solid rgba(112,124,139,.28);border-radius:7px;background:rgba(248,250,253,.58);box-shadow:inset 0 1px 0 rgba(255,255,255,.65);order:1}
 .ticketDetails[hidden]{display:none!important}
 .dashboardLeg{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 6px 8px 12px;border:1px solid transparent;border-radius:6px;background:rgba(255,255,255,.2)}
 .dashboardLeg::before{content:"";position:absolute;left:4px;top:7px;bottom:7px;width:4px;border-radius:4px;background:#8794a4}
@@ -97,7 +97,7 @@
 .dashboardLeg[data-leg-state="suspended"]::before,.dashboardLeg[data-leg-state="unavailable"]::before{background:#9d6f95}
 .dashboardLegLabel{font-size:13.4px;line-height:1.14;font-weight:900;color:#17202a}
 .dashboardLegMeta{margin-top:2px;color:#647080;font-size:9.8px;line-height:1.18}
-.dashboardLegStatus{display:inline-grid;place-items:center;height:17px;margin-top:4px;padding:0 6px;border:1px solid #94a8be;border-radius:5px;background:#b9c7d8;color:#344252;font-size:7.7px;line-height:1;font-weight:900;letter-spacing:.05em}
+.dashboardLegStatus{display:inline-flex;align-items:center;justify-content:center;height:17px;margin-top:4px;padding:0 6px;border:1px solid #94a8be;border-radius:5px;background:#b9c7d8;color:#344252;font-size:7.7px;line-height:17px;font-weight:900;letter-spacing:.05em;box-sizing:border-box}
 .dashboardLegValue{min-width:42px;font-size:15px;line-height:1;font-weight:950;text-align:right;color:#111923}
 .dashboardLeg[data-leg-state="won"] .dashboardLegStatus{background:#63c97a;color:#064d1c;border-color:#3fa95a}
 .dashboardLeg[data-leg-state="lost"] .dashboardLegStatus{background:#e86b7c;color:#6f0b1c;border-color:#c94c60}
