@@ -45,6 +45,16 @@
     return actual;
   }
 
+  function scheduledGameMeta(value){
+    const text=clean(value);
+    const match=text.match(/^\d{8}T(\d{2})(\d{2})$/);
+    if(!match)return'';
+    const hour24=Number(match[1]),minute=match[2];
+    if(!Number.isInteger(hour24)||hour24<0||hour24>23)return'';
+    const suffix=hour24>=12?'PM':'AM',hour=hour24%12||12;
+    return `${hour}:${minute} ${suffix} CT`;
+  }
+
   function normalizeLeg(record,ticket,index,settlements){
     const saved=asArray(ticket.legs)[index]||{};
     const snapshot=asArray(record?.trackerSnapshot?.legs)[index]||{};
@@ -52,7 +62,9 @@
     const result=terminalLegState(settlement.status||settlement.outcome||settlement.state||snapshot.state);
     const runtime=result?'':runtimeLegState(snapshot.state||settlement.status||settlement.state)||'PENDING';
     const label=clean(snapshot.label||saved.label||saved.type||'Untitled leg');
-    return Object.freeze({index,label,game:clean(snapshot.game||saved.game||ticket.game),team:clean(snapshot.team||saved.team),player:clean(snapshot.player||saved.player),target:normalizedTarget(saved,snapshot),actualValue:displayActual(saved,snapshot,settlement,label),valueClass:clean(snapshot.valueClass),gameMeta:clean(snapshot.gameMeta),result,runtime,settledAt:settlement.settledAt||null,settlementReason:clean(settlement.settlementReason||settlement.reason)});
+    const snapshotMeta=clean(snapshot.gameMeta);
+    const scheduledMeta=runtime==='PENDING'?scheduledGameMeta(saved.gameStart||ticket.gameStart):'';
+    return Object.freeze({index,label,game:clean(snapshot.game||saved.game||ticket.game),team:clean(snapshot.team||saved.team),player:clean(snapshot.player||saved.player),target:normalizedTarget(saved,snapshot),actualValue:displayActual(saved,snapshot,settlement,label),valueClass:clean(snapshot.valueClass),gameMeta:snapshotMeta||scheduledMeta,result,runtime,settledAt:settlement.settledAt||null,settlementReason:clean(settlement.settlementReason||settlement.reason)});
   }
 
   function normalize(record){
@@ -69,7 +81,7 @@
     return Object.freeze({id:clean(source.id),record:source,ticket:clone(ticket),workflow:workflow(source),finalOutcome,runtime,displayOutcome:finalOutcome||runtime,legs:Object.freeze(legs),savedAt:source.savedAt||source.createdAt||null,settledAt:source.settledAt||null,sportsbook:clean(source.sportsbook),trackerUpdatedAt:source.trackerUpdatedAt||source.trackerSnapshot?.updatedAt||null,isFinal:Boolean(finalOutcome),isActive:workflow(source)==='ACTIVE'});
   }
 
-  const api=Object.freeze({normalize,deriveFinalOutcome,workflow,terminalLegState,runtimeLegState});
+  const api=Object.freeze({normalize,deriveFinalOutcome,workflow,terminalLegState,runtimeLegState,scheduledGameMeta});
   if(typeof module!=='undefined'&&module.exports)module.exports=api;
   if(typeof window!=='undefined')window.ParlayTicketStateModel=api;
 })();
