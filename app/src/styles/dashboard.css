@@ -99,6 +99,11 @@
 .dashboardLegMeta{margin-top:2px;color:#647080;font-size:9.8px;line-height:1.18}
 .dashboardLegStatus{display:inline-flex;align-items:center;justify-content:center;height:17px;margin-top:4px;padding:0 6px;border:1px solid #94a8be;border-radius:5px;background:#b9c7d8;color:#344252;font-size:7.7px;line-height:17px;font-weight:900;letter-spacing:.05em;box-sizing:border-box}
 .dashboardLegValue{min-width:42px;font-size:15px;line-height:1;font-weight:950;text-align:right;color:#111923}
+.dashboardLeg[data-leg-state="won"] .dashboardLegValue,.dashboardLegValue.valueAhead1,.dashboardLegValue.valueAhead2,.dashboardLegValue.valueAhead3{color:#118038}
+.dashboardLeg[data-leg-state="lost"] .dashboardLegValue,.dashboardLegValue.valueBehind1,.dashboardLegValue.valueBehind2,.dashboardLegValue.valueBehind3{color:#b6263d}
+.dashboardLeg[data-leg-state="push"] .dashboardLegValue{color:#947014}
+.dashboardLegValue.valueTie{color:#315f9c}
+.dashboardLegValue.valuePending{color:#667383}
 .dashboardLeg[data-leg-state="won"] .dashboardLegStatus{background:#63c97a;color:#064d1c;border-color:#3fa95a}
 .dashboardLeg[data-leg-state="lost"] .dashboardLegStatus{background:#e86b7c;color:#6f0b1c;border-color:#c94c60}
 .dashboardLeg[data-leg-state="push"] .dashboardLegStatus{background:#e0b93f;color:#503900;border-color:#ba8f18}
