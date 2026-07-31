@@ -24,22 +24,41 @@
     return states.every(state=>state==='WON'||state==='PUSH')?'WON':'';
   }
 
+  function isCountingMarket(saved,label){
+    const text=`${clean(saved?.type)} ${clean(label)}`.toLowerCase();
+    if(/moneyline|\bml\b|spread|run line|puck line|team total|game total|over|under/.test(text))return false;
+    return /\bh\b|hit|total base|\btb\b|rbi|run|h\+r\+rbi|h\+bb\+sb|strikeout|\bk\b|point|rebound|assist|three|3pt/.test(text);
+  }
+
+  function normalizedTarget(saved,snapshot){
+    const target=saved?.target??snapshot?.target??'';
+    const text=`${clean(saved?.type)} ${clean(saved?.label||snapshot?.label)}`.toLowerCase();
+    return /moneyline|\bml\b|spread|run line|puck line/.test(text)?'':target;
+  }
+
+  function displayActual(saved,snapshot,settlement,label){
+    const actual=settlement.actualValue??settlement.value??snapshot.actualValue??snapshot.value;
+    if(actual===undefined||actual===null||actual==='')return'';
+    const target=saved?.target??snapshot?.target;
+    if(isCountingMarket(saved,label)&&target!==undefined&&target!==null&&target!=='')return `${actual}/${target}`;
+    return actual;
+  }
+
   function normalizeLeg(record,ticket,index,settlements){
     const saved=asArray(ticket.legs)[index]||{};
     const snapshot=asArray(record?.trackerSnapshot?.legs)[index]||{};
     const settlement=settlements.get(index)||{};
     const result=terminalLegState(settlement.status||settlement.outcome||settlement.state||snapshot.state);
     const runtime=result?'':runtimeLegState(snapshot.state||settlement.status||settlement.state)||'PENDING';
-    const actual=settlement.actualValue??settlement.value??snapshot.actualValue??snapshot.value;
-    const target=saved.target??snapshot.target??'';
+    const label=clean(snapshot.label||saved.label||saved.type||'Untitled leg');
     return Object.freeze({
       index,
-      label:clean(snapshot.label||saved.label||saved.type||'Untitled leg'),
+      label,
       game:clean(snapshot.game||saved.game||ticket.game),
       team:clean(snapshot.team||saved.team),
       player:clean(snapshot.player||saved.player),
-      target,
-      actualValue:actual===undefined||actual===null?'':actual,
+      target:normalizedTarget(saved,snapshot),
+      actualValue:displayActual(saved,snapshot,settlement,label),
       valueClass:clean(snapshot.valueClass),
       gameMeta:clean(snapshot.gameMeta),
       result,
