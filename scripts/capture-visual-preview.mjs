@@ -59,6 +59,13 @@ try{
   await page.getByRole('button',{name:'Select'}).click();
   const selectionVisible=await page.locator('.ticketDetails').evaluateAll(nodes=>nodes.filter(node=>getComputedStyle(node).display!=='none').length);
   if(selectionVisible!==0)throw new Error(`Selection mode exposed ${selectionVisible} ticket detail panel(s)`);
+  await page.getByRole('button',{name:'Select All'}).click();
+  const deselectAll=page.getByRole('button',{name:'Deselect All'});
+  if(await deselectAll.count()!==1)throw new Error('All-selected state did not expose Deselect All');
+  const checked=await page.locator('.ticketSelectBox:checked').count();
+  if(checked!==tickets.length)throw new Error(`Select All checked ${checked} of ${tickets.length} tickets`);
+  if(await page.getByRole('button',{name:`Share / Export ${tickets.length}`}).isDisabled())throw new Error('Share / Export remained disabled after Select All');
+  if(await page.getByRole('button',{name:`Delete ${tickets.length}`}).isDisabled())throw new Error('Delete remained disabled after Select All');
   await page.screenshot({path:`${output}/03-dashboard-selection.png`,fullPage:true});
   await page.getByRole('button',{name:'Cancel'}).click();
   await page.locator('a[href="#ticket=preview-won"]').click();
