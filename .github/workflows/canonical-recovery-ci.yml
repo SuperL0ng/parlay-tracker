@@ -1,0 +1,124 @@
+name: Canonical Recovery CI
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'app/**'
+      - 'scripts/**'
+      - 'tests/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'playwright.config.*'
+      - '.github/workflows/canonical-recovery-ci.yml'
+  push:
+    branches: [recovery/canonical-rebuild]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: canonical-recovery-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  canonical-suite:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Syntax
+        run: npm run check:syntax
+
+      - name: Repository cleanliness
+        run: npm run verify:cleanliness
+
+      - name: Build
+        run: npm run build
+
+      - name: Architecture
+        run: npm run verify:architecture
+
+      - name: Deterministic output
+        run: npm run verify:generated
+
+      - name: Component contracts
+        run: npm run test:components
+
+      - name: Tracker contracts
+        run: npm run test:tracker
+
+      - name: Sharing controller
+        run: node scripts/test-sharing-controller-contract.mjs
+
+      - name: Ticket View controller
+        run: node scripts/test-ticket-view-controller-contract.mjs
+
+      - name: Dashboard controller
+        run: node scripts/test-dashboard-controller-contract.mjs
+
+      - name: App controller
+        run: node scripts/test-app-controller-contract.mjs
+
+      - name: Bootstrap controller
+        run: node scripts/test-bootstrap-contract.mjs
+
+      - name: Controller lifecycle integration
+        run: node scripts/test-controller-lifecycle-integration.mjs
+
+      - name: Doubleheader binding regression
+        run: node scripts/test-canonical-doubleheader-binding.mjs
+
+      - name: Ticket ID binding regression
+        run: node scripts/test-canonical-ticket-id-binding.mjs
+
+      - name: Action-menu lifecycle regression
+        run: node scripts/test-canonical-action-menu-lifecycle.mjs
+
+      - name: Hosting contracts
+        run: npm run verify:hosting
+
+      - name: Install browsers
+        run: npx playwright install --with-deps chromium webkit
+
+      - name: Browser suite
+        run: npm run test:browser
+
+      - name: Capture controlled visual preview
+        run: node scripts/capture-visual-preview.mjs
+
+      - name: Upload controlled visual preview
+        uses: actions/upload-artifact@v4
+        with:
+          name: canonical-gold-visual-preview
+          path: visual-preview
+          retention-days: 7
+
+      - name: Upload generated Gold and Silver builds
+        uses: actions/upload-artifact@v4
+        with:
+          name: canonical-generated-builds
+          path: build
+          retention-days: 7
+
+      - name: Upload browser diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: canonical-recovery-browser-diagnostics
+          path: |
+            playwright-report
+            test-results
+          if-no-files-found: ignore
+          retention-days: 7

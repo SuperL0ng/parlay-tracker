@@ -1,0 +1,10 @@
+node_modules/
+build/
+test-results/
+playwright-report/
+gate5-*.log
+gate5-*.status
+gate5-*.txt
+gate5-playwright-results.json
+gate6-*.log
+gate6-*.txt

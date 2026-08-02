@@ -2,37 +2,37 @@
 
 ## Repository roles
 
-- `SuperL0ng/parlay-tracker` is the **app repo**: the authoritative development and staging application. Its final custom domain is `https://simonsports.bet/`, and its identity is always gold.
-- `SuperL0ng/SuperL0ng.github.io` is the **root repo**: the independent public production deployment. Its final custom domain is `https://simonsportsbetting.com/`, and its identity is silver.
+- `SuperL0ng/parlay-tracker` is the canonical source repository and gold deployment target for `simonsports.bet`.
+- `SuperL0ng/SuperL0ng.github.io` is the independent silver deployment target for `simonsportsbetting.com`.
 
-Theme identity belongs to the repository, not to hostname-detection logic. The app repo is gold wherever it is opened. The root repo is silver wherever it is opened.
+Neither production site may fetch, mirror, rewrite, or import the other repository at runtime.
 
-## Deployment contract
+## Build contract
 
-The root repo is self-contained. It must not fetch, mirror, rewrite, or load the app repo at runtime. A production release is promoted by copying a tested app release into the root repo and then applying only the root repo's silver identity, metadata, and deployment contract.
+From one audited source commit:
 
-The two custom domains are separate browser origins. Each therefore has an independent `localStorage` ticket library. Ticket libraries do not follow repository or domain reassignment automatically. Export both libraries before any domain migration.
+1. run `npm ci`;
+2. run `npm test`;
+3. run `npm run build`;
+4. verify `build/gold` and `build/silver` with `npm run verify:hosting`;
+5. retain the exact source commit and build hashes used for both deployments.
 
-## App-repo release
+Generated `build/` output is ignored on the development branch.
 
-1. Make and test the change in `parlay-tracker`.
-2. Run `node scripts/verify-hosting-contract.mjs`.
-3. Confirm JavaScript syntax checks pass.
-4. Publish and test `https://simonsports.bet/`.
-5. Do not alter the root repo until the app release is approved for production.
+## Gold deployment
 
-## Production promotion
+1. Export the existing `simonsports.bet` ticket library as a precaution.
+2. Replace the gold repository deployment root with the complete contents of `build/gold`; do not retain historical root scripts or manifests.
+3. Publish and verify `simonsports.bet` before touching silver.
+4. Test saved-ticket preservation, four-ticket ordering, expansion, filters, selection/deletion, actions, settlement timestamps, refresh, sharing, mobile layout, icons, manifest, and theme identity.
 
-1. Export the ticket libraries from both custom domains.
-2. Copy the approved application files into the root repo through a controlled promotion.
-3. Preserve the root repo's silver icons, manifest, metadata, CNAME, and independent asset paths.
-4. Run the root deployment verifier.
-5. Publish and test `https://simonsportsbetting.com/`.
-6. Verify ticket views, Active Tickets, Close behavior, header images, icons, manifests, share metadata, and domain-local ticket storage.
+## Silver deployment
 
-## Domain roles
+1. Use `build/silver` produced from the exact same audited source commit as gold.
+2. Export the existing `simonsportsbetting.com` ticket library as a precaution.
+3. Replace the silver repository deployment root completely; do not copy gold metadata or retain old runtime patches.
+4. Publish and repeat the production verification matrix.
 
-| Domain | Repository | Role | Identity |
-|---|---|---|---|
-| `simonsports.bet` | `parlay-tracker` | development/staging | gold |
-| `simonsportsbetting.com` | `SuperL0ng.github.io` | public production | silver |
+## Storage boundary
+
+The domains are separate browser origins and therefore maintain separate `localStorage` libraries. Deployment on the same domain preserves its existing `parlayTracker.savedTickets.v1` data, but ticket libraries do not transfer between domains automatically.
